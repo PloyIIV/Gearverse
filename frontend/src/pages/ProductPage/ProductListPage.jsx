@@ -7,7 +7,7 @@ const ProductListPage = () => {
     const param = useParams();
     console.log(param.id)
   return (
-    <div className='min-h-screen bg-gbg-3'>
+    <div className='min-h-screen relative z-10'>
         <div className='h-60 border flex flex-col justify-center items-center border-gbase-1 bg-linear-to-br from-gbg-1 0% via-50% via-gbase-3 to-gpurple-5/40'>
             <div className='text-white text-center'>
                 <h3 className='font-bold tracking-widest'>COLLECTION</h3>

@@ -6,7 +6,7 @@ import { Field } from "#components/ui/field";
 
 const Footer = () => {
   return (
-    <div className="bg-gbg-1 text-[#8A8A93] py-10 text-sm">
+    <div className="bg-gbg-1 text-[#8A8A93] py-10 text-sm relative z-10">
       <div className="w-11/12 grid grid-cols-4 mx-auto">
         <div>
           <h2 className="text-white text-base mb-4">
