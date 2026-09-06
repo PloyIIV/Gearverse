@@ -5,7 +5,7 @@ import React from "react";
 
 const ProductCard = ({ img }) => {
   return (
-    <div className="relative border border-gpurple-2 text-center rounded-2xl shadow-lg shadow-purple-900/50 text-white">
+    <div className="relative border bg-gbg-1/95 border-gpurple-2 text-center rounded-2xl shadow-lg shadow-purple-900/50 text-white">
       <Badge variant="outline" className={"border-gpurple-2 absolute left-5 top-2 bg-gpurple-4/55"}>KEYBOARD</Badge>
       <img className="rounded-t-2xl h-80 object-cover" src={img} alt="" />
       <div className="w-[80%] mx-auto my-4 text-white">

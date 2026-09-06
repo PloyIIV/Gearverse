@@ -3,7 +3,7 @@ import React from "react";
 
 const ProductSecondaryCard = ({ img }) => {
   return (
-    <div className="border border-gpurple-2 text-center rounded-2xl shadow-lg shadow-purple-900/50">
+    <div className="border border-gpurple-2 bg-gbg-1/95 text-center rounded-2xl shadow-lg shadow-purple-900/50">
       <img className="rounded-t-2xl h-80 object-cover" src={img} alt="" />
       <div className="w-[80%] mx-auto my-4 text-white">
         <h3 className="font-bold text-xl">Product Name</h3>

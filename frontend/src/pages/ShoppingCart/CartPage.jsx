@@ -141,7 +141,7 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090813] text-slate-100 py-6 sm:py-10 px-3 sm:px-6 lg:px-12 font-sans antialiased">
+    <div className="min-h-screen relative z-10 text-slate-100 py-6 sm:py-10 px-3 sm:px-6 lg:px-12 font-sans antialiased">
       <div className="max-w-7xl mx-auto">
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -203,7 +203,7 @@ export default function CartPage() {
                   return (
                     <Card
                       key={item.id}
-                      className="bg-[#121022]!border-0!shadow-none border-purple-600/20 hover:border-purple-400/50 rounded-2xl transition-all group"
+                      className="bg-[#121022] border-0 shadow-none border-purple-600/20 hover:border-purple-400/50 rounded-2xl transition-all group"
                     >
                       <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                         {/* Product Thumbnail */}

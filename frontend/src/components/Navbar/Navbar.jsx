@@ -71,7 +71,7 @@ const Navbar = () => {
 
       {/* SEC3 */}
       
-      {!true ? <NavbarAuthenticate /> : <NavbarUnauthen />}
+      {true ? <NavbarAuthenticate /> : <NavbarUnauthen />}
     </nav>
   );
 };

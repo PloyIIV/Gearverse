@@ -80,6 +80,7 @@ const NavbarAuthenticate = () => {
           <NavigationMenuItem>
             <NavigationMenuTrigger
               className={"border border-gbase-1 rounded-lg h-10"}
+              render={<Link to={'/cart'} />}
             >
               <ShoppingBag size={20} color="#22D3EE" />
             </NavigationMenuTrigger>
