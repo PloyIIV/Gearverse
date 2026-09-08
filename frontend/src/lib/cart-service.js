@@ -57,6 +57,22 @@ export function saveCart(items) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); //เอา items ที่แปลงเป็น String แล้ว ไปเก็บไว้ใน localStorage ช่องที่ชื่อ STORAGE_KEY
 }
 
+//เพิ่มสินค้าลง Cart ถ้ามี id เดิมอยู่แล้วให้บวกจำนวนเพิ่ม ไม่งั้นต่อท้ายเป็นรายการใหม่
+export function addToCart(item) {
+  const items = getInitialCart();
+  const index = items.findIndex((i) => i.id === item.id);
+
+  const next =
+    index === -1
+      ? [...items, item]
+      : items.map((i, idx) =>
+          idx === index ? { ...i, quantity: i.quantity + item.quantity } : i
+        );
+
+  saveCart(next);
+  return next;
+}
+
 //ไปดูใน localStorage ว่ามี applied_promo ใส่ไว้ไหม ถ้ามีเอาอันนั้นมาใช้ แต่ถ้าไม่มี ให้ใช้ GEAR30 แทน
 export function getSavedPromo() {
   return localStorage.getItem(PROMO_KEY) || "GEAR30"; // ตอนนี้ผู้ใช้เลือก Promo Code อะไรไว้? ถ้าด้านซ้ายไม่มีค่า ให้ใช้ด้านขวาแทน
