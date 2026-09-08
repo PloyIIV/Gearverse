@@ -7,6 +7,7 @@ import ProductPage from "./pages/ProductPage/ProductPage";
 import PersonalInfo from "./pages/User/01MyAccount/PersonalInfo";
 import Addresses from "./pages/User/01MyAccount/Addresses";
 import MyPurchase from "./pages/User/02MyPurchase/MyPurchase";
+import OrderStatus from "./pages/User/02MyPurchase/OrderStatus";
 import MyReviews from "./pages/User/03MyReviews/MyReviews";
 import MyCancellations from "./pages/User/04MyCancellations/MyCancellations";
 import ProductListPage from "./pages/ProductPage/ProductListPage";
@@ -26,6 +27,9 @@ const router = createBrowserRouter([
       { path: "edit-profile", element: <PersonalInfo /> },
       { path: "edit-profile/addresses", element: <Addresses /> },
       { path: "my-purchases", element: <MyPurchase /> },
+      { path: "my-purchases/order-status", element: <OrderStatus /> },
+      { path: "my-purchases/:orderId", element: <OrderStatus /> },
+      { path: "order-status", element: <OrderStatus /> },
       { path: "my-reviews", element: <MyReviews /> },
       { path: "my-cancellations", element: <MyCancellations /> },
       { path: "cart", element: <CartPage /> },
