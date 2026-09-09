@@ -1,5 +1,6 @@
 import express from "express";
 import { router as apiRoutes } from "./routes/index.js";
+import { connectDB } from "./config/db.js";
 
 const app = express();
 const port = 5000;
@@ -23,6 +24,7 @@ app.use((err, req, res, next) => {
 
 const start = async () => {
   try {
+    await connectDB();
     app.listen(port, () => {
       console.log(`Server is running on port: ${port}`);
     });
