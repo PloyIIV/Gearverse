@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { User } from "../../models/user.model";
+import { User } from "../../models/user.model.js";
 import bcrypt from 'bcrypt'
 
 export const userRouter = Router();
 
 userRouter.get('/', async (req, res) => {
     try {
+        console.log('test')
         const data = await User.find()
         return res.json({
             data

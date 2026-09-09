@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const NavbarAuthenticate = () => {
+const NavbarAuthenticate = ({ setClick, click }) => {
   return (
     <div className="w-1/5 flex justify-end">
       <NavigationMenu>
@@ -69,8 +69,8 @@ const NavbarAuthenticate = () => {
               <hr className="w-full my-2 border-[#ffffff1f]" />
               {/* // add logout link under here */}
               <NavigationMenuLink
-                render={<Link to={"/edit-profile"} />}
                 className={"text-white gap-4 hover:bg-gbase-3"}
+                onClick={() => setClick(!click)}
               >
                 <LogOut color="#6B6B8D" />
                 Logout
@@ -80,7 +80,7 @@ const NavbarAuthenticate = () => {
           <NavigationMenuItem>
             <NavigationMenuTrigger
               className={"border border-gbase-1 rounded-lg h-10"}
-              render={<Link to={'/cart'} />}
+              render={<Link to={"/cart"} />}
             >
               <ShoppingBag size={20} color="#22D3EE" />
             </NavigationMenuTrigger>

@@ -37,7 +37,7 @@ const NavbarUnauthen = () => {
               className={
                 "bg-gpink-2 rounded-lg h-10 font-bold tracking-wide hover:bg-gpink-3"
               }
-              render={<Link to={'/register'} />}
+              render={<Link to={'/login'} />}
             >
               LOGIN
             </NavigationMenuLink>
