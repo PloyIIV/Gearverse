@@ -1,9 +1,20 @@
 // Web Audio API synthesizer for realistic mechanical keyboard switch sound tests
 
+const SWITCH_SOUNDS = {
+    linear: '/linear_sound.mp3',
+    tactile: '/tactile_sound.mp3',
+    clicky: '/clicky_sound.mp3'
+};
+
+// เสียงสังเคราะห์สั้นมาก (~0.1s) ใช้ตัวเลขนี้นับว่าเล่นจบเพื่อรีเซ็ตปุ่ม
+const SYNTHETIC_DURATION_MS = 150;
+
 class SoundEngine {
     constructor() {
         this.ctx = null;
         this.currentAudio = null;
+        this.currentType = null;
+        this.syntheticTimer = null;
     }
 
     initCtx() {
@@ -18,36 +29,57 @@ class SoundEngine {
         }
     }
 
-    // Play a click/thock sound based on switch profile
-    playSwitchSound(type = 'linear') {
+    // หยุดเสียงที่กำลังเล่นอยู่ ใช้ตอนกดปุ่มลำโพงซ้ำเพื่อปิดเสียง
+    stop() {
         if (this.currentAudio) {
+            this.currentAudio.onended = null;
+            this.currentAudio.onerror = null;
             this.currentAudio.pause();
             this.currentAudio.currentTime = 0;
             this.currentAudio = null;
         }
+        if (this.syntheticTimer) {
+            clearTimeout(this.syntheticTimer);
+            this.syntheticTimer = null;
+        }
+        this.currentType = null;
+    }
+
+    // เล่นอยู่หรือเปล่า ถ้าใส่ type มาด้วยจะเช็กเฉพาะเสียงนั้น
+    isPlaying(type) {
+        return type === undefined ? this.currentType !== null : this.currentType === type;
+    }
+
+    // Play a click/thock sound based on switch profile
+    // onEnded ถูกเรียกเมื่อเสียงเล่นจบเอง (ไม่เรียกถ้าโดน stop())
+    playSwitchSound(type = 'linear', onEnded) {
+        this.stop();
+        this.currentType = type;
+
+        const finish = () => {
+            if (this.currentType !== type) return; // โดนหยุดหรือเปลี่ยนเสียงไปแล้ว
+            this.currentAudio = null;
+            this.currentType = null;
+            if (onEnded) onEnded(type);
+        };
+
+        const audioSource = SWITCH_SOUNDS[type];
 
         try {
             // First, attempt to play a real audio recording if it exists in the public directory
-            let audioSource = '';
-            if (type === 'linear') {
-                audioSource = '/linear_sound.mp3'; // The user can place their downloaded youtube audio here
-            } else if (type === 'tactile') {
-                audioSource = '/tactile_sound.mp3';
-            } else if (type === 'clicky') {
-                audioSource = '/clicky_sound.mp3';
-            }
-
             if (audioSource) {
                 const audio = new Audio(audioSource);
                 this.currentAudio = audio;
                 audio.volume = 0.5;
+                audio.onended = finish;
 
                 let fallbackTriggered = false;
                 const triggerFallback = () => {
-                    if (!fallbackTriggered) {
-                        fallbackTriggered = true;
-                        this.playSynthetic(type);
-                    }
+                    if (fallbackTriggered) return;
+                    fallbackTriggered = true;
+                    if (this.currentType !== type) return; // ผู้ใช้กดหยุดไปก่อนแล้ว
+                    this.currentAudio = null;
+                    this.playSynthetic(type, finish);
                 };
 
                 audio.onerror = triggerFallback;
@@ -57,14 +89,22 @@ class SoundEngine {
                     playPromise.catch(triggerFallback);
                 }
             } else {
-                this.playSynthetic(type);
+                this.playSynthetic(type, finish);
             }
         } catch {
-            this.playSynthetic(type);
+            this.playSynthetic(type, finish);
         }
     }
 
-    playSynthetic(type) {
+    playSynthetic(type, onEnded) {
+        // เสียงสังเคราะห์สั้นมากและไม่มี event 'ended' จับเวลาให้ปุ่มกลับสถานะเอง
+        if (onEnded) {
+            this.syntheticTimer = setTimeout(() => {
+                this.syntheticTimer = null;
+                onEnded();
+            }, SYNTHETIC_DURATION_MS);
+        }
+
         try {
             this.initCtx();
             if (!this.ctx) return;
