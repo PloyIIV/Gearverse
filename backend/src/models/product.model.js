@@ -1,9 +1,13 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const productSchema = new mongoose.Schema({
-    // username: { type: String, required: true, unique: true },
-    // password: { type: String, required: true, select: false },
-    // email: { type: String, unique: true, lowercase: true }
+    product_name: { type: String },
+    description: { type: String },
+    category_id: { type: Schema.ObjectId },
+    subcategory_id: { type: Schema.ObjectId },
+    manufacturer_id: { type: Schema.ObjectId },
+    price: { type: Number },
+    stock: { type: Number }
 }, {
     timestamps: true
 })
