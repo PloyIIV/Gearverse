@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import LogoImg from "../../assets/Artboard1.png";
 import LogoText from "../../assets/Untitled-2.png";
 import {
@@ -41,14 +41,15 @@ import NavbarUnauthen from "./NavbarUnauthen";
 const category = ["keyboard", "mouse", "headset", "accessory"];
 
 const Navbar = () => {
+  const [click, setClick] = useState(false)
   return (
     <nav className="bg-gbg-2 w-full h-16 flex items-center justify-between px-10 text-white relative z-20 shadow-xl shadow-gpurple-4/80">
-      <Link to={"/"} className="flex items-center gap-4">
+      <Link to={"/"} className="flex items-center gap-4 w-1/3">
         <img className="w-10 h-10" src={LogoImg} alt="logo" />
         <img className="w-40" src={LogoText} alt="logo text" />
       </Link>
       {/* SECTION 2 */}
-      <NavigationMenu>
+      <NavigationMenu className={"w-1/3"}>
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuLink
@@ -60,7 +61,7 @@ const Navbar = () => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuTrigger>COLLECTIONS</NavigationMenuTrigger>
-            <NavigationMenuContent className={"text-white w-40"}>
+            <NavigationMenuContent className={"text-white w-56"}>
               {category.map((item) => {
                 return (
                   <NavigationMenuLink
@@ -80,7 +81,8 @@ const Navbar = () => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
-              className={"border border-pink-300 text-pink-300 h-8 rounded-lg"}
+              className={"border border-pink-300 text-pink-300 h-8 ml-4 rounded-lg"}
+              render={<Link to={"/sale"} />}
             >
               SALE
             </NavigationMenuLink>
@@ -89,8 +91,9 @@ const Navbar = () => {
       </NavigationMenu>
 
       {/* SEC3 */}
-
-      {true ? <NavbarAuthenticate /> : <NavbarUnauthen />}
+      <div className="w-1/3 flex justify-end">
+        {!click ? <NavbarAuthenticate setClick={setClick} click={click} /> : <NavbarUnauthen />}
+      </div>
     </nav>
   );
 };

@@ -15,6 +15,7 @@ import LayoutAdmin from "#components/Admin/LayoutAdmin";
 import AdminHomepage from "./pages/Admin/AdminHomepage";
 import AdminDashboard from "#components/Admin/AdminDashboard";
 import Login from "./pages/Login/Login";
+import SalePage from "./pages/ProductPage/SalePage";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,8 @@ const router = createBrowserRouter([
       { path: "cart", element: <CartPage /> },
       { path: "product", element: <ProductPage /> }, // products/:category_id/:product_id
       { path: "products/:id", element: <ProductListPage /> },
+      { path: "/sale", element: <SalePage /> },
+
     ],
   },
 ]);
