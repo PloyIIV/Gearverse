@@ -6,9 +6,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "#components/ui/carousel";
-import video_banner1 from "../../assets/video-banner/banner1.mov";
+import video_banner1 from "../../assets/video-banner/banner1.mp4";
 import video_banner2 from "../../assets/video-banner/banner2.mov";
-import video_banner3 from "../../assets/video-banner/banner3.mp4";
+import video_banner3 from "../../assets/video-banner/banner3.mov";
 import { Card, CardContent } from "#components/ui/card";
 import { Button } from "#components/ui/button";
 import img_cate1 from "../../assets/image-category/Gemini_Generated_Image_hh5i48hh5i48hh5i.jpg";
