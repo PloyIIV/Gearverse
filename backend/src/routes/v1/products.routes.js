@@ -5,7 +5,6 @@ export const productRouter = Router();
 
 productRouter.get("/", async (req, res) => {
   try {
-    console.log('test')
     const data = await Product.find();
     return res.json({
       data,
@@ -20,7 +19,12 @@ productRouter.get("/", async (req, res) => {
 
 productRouter.post("/", async (req, res) => {
   try {
+    console.log(req.body)
     const data = await Product.create(req.body)
+    return res.status(200).json({
+      success: true,
+      message: "Created Product successfully."
+    })
   } catch (error) {
     console.log(error);
     return res.json({
