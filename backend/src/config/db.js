@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
 
 export async function connectDB() {
-    const uri = process.env.MONGO_URI;
-    if(!uri) {
-        throw new Error("Missing MONGO_URI")
+    const url = process.env.MONGO_URL;
+    if(!url) {
+        throw new Error("Missing MONGO_URL")
     }
-    await mongoose.connect(uri, {
+    await mongoose.connect(url, {
         // dbName: 'gearverse'
     })
 
