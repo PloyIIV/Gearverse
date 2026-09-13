@@ -53,7 +53,7 @@ const routerAdmin = createBrowserRouter([
 function App() {
   return (
     <>
-      {true ? (
+      {!true ? (
         <RouterProvider router={router} />
       ) : (
         <RouterProvider router={routerAdmin} />

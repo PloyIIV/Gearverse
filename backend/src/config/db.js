@@ -5,7 +5,7 @@ export async function connectDB() {
     if(!url) {
         throw new Error("Missing MONGO_URL")
     }
-    await mongoose.connect(uri, {
+    await mongoose.connect(url, {
         dbName: 'gearverse'
     })
 
