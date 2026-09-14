@@ -4,10 +4,14 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  Eye,
   Pencil,
   Plus,
   RefreshCw,
+  ScrollText,
   Search,
+  ShoppingCart,
+  Star,
   Trash2,
   Users,
 } from "lucide-react";
@@ -45,6 +49,7 @@ const initialForm = {
 };
 
 function fullName(user) {
+  if (!user) return "";
   const name = [user.firstname, user.lastname].filter(Boolean).join(" ").trim();
   return name || user.username || "—";
 }
@@ -107,6 +112,44 @@ function validateUser(form, isEdit) {
   return errors;
 }
 
+function fromReviewDoc(doc) {
+  return {
+    id: doc._id,
+    product: doc.product_id?.product_name ?? "Unknown Product",
+    rating: doc.rating,
+    date: formatDate(doc.createdAt),
+    comment: doc.comment ?? "",
+  };
+}
+
+function fromCartItemDoc(item) {
+  return {
+    id: item._id,
+    product: item.product_name ?? "Unknown Product",
+    tag: item.tag ?? "",
+    unitPrice: item.unit_price,
+    quantity: item.quantity,
+    image: item.image ?? "",
+  };
+}
+
+function RatingStars({ value, className }) {
+  return (
+    <span className={cn("flex items-center gap-0.5", className)} aria-label={`${value} out of 5 stars`}>
+      {Array.from({ length: 5 }, (_, index) => (
+        <Star
+          key={index}
+          className={cn(
+            "size-3.5",
+            index < value ? "fill-amber-400 text-amber-400" : "text-slate-600",
+          )}
+          aria-hidden="true"
+        />
+      ))}
+    </span>
+  );
+}
+
 function FieldError({ message }) {
   if (!message) return null;
   return (
@@ -134,6 +177,13 @@ export default function UserManager() {
 
   const [deletingUser, setDeletingUser] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  const [inspectingUser, setInspectingUser] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [cartItems, setCartItems] = useState([]);
+  const [detailTab, setDetailTab] = useState("reviews");
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => setQuery(search), 400);
@@ -255,6 +305,50 @@ export default function UserManager() {
     } finally {
       setDeleting(false);
     }
+  }
+
+  async function loadUserDetails(user) {
+    setInspectingUser(user);
+    setDetailTab("reviews");
+    setReviews([]);
+    setCartItems([]);
+    setDetailsLoading(true);
+
+    let errorMsg = "";
+    try {
+      const [reviewRes, cartRes] = await Promise.all([
+        fetch(`/api/v1/reviews?userId=${user.id}`),
+        fetch(`/api/v1/shoppingcart/${user.id}`),
+      ]);
+
+      const reviewResult = await reviewRes.json().catch(() => ({}));
+      const cartResult = await cartRes.json().catch(() => ({}));
+
+      if (!reviewRes.ok) {
+        errorMsg = reviewResult.message || "Failed to load reviews";
+      } else {
+        setReviews((reviewResult.data ?? []).map(fromReviewDoc));
+      }
+
+      if (!cartRes.ok) {
+        errorMsg = errorMsg || cartResult.message || "Failed to load shopping cart";
+      } else {
+        setCartItems((cartResult.data?.items ?? []).map(fromCartItemDoc));
+      }
+    } catch (error) {
+      errorMsg = error.message;
+    } finally {
+      setDetailsError(errorMsg);
+      setDetailsLoading(false);
+    }
+  }
+
+  function closeInspector() {
+    setInspectingUser(null);
+    setReviews([]);
+    setCartItems([]);
+    setDetailTab("reviews");
+    setDetailsError("");
   }
 
   const fieldClass = (field) =>
@@ -403,7 +497,12 @@ export default function UserManager() {
                   users.map((user) => (
                     <tr key={user.id} className="border-b border-white/5 transition hover:bg-white/[0.02]">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => loadUserDetails(user)}
+                          className="group flex items-center gap-3 text-left"
+                          title={`View ${fullName(user)} reviews & shopping cart`}
+                        >
                           <div className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 text-xs font-bold text-white">
                             {fullName(user)
                               .split(" ")
@@ -413,10 +512,12 @@ export default function UserManager() {
                               .toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-semibold">{fullName(user)}</p>
+                            <p className="font-semibold transition group-hover:text-violet-300">
+                              {fullName(user)}
+                            </p>
                             <p className="text-xs text-slate-500">@{user.username || "—"}</p>
                           </div>
-                        </div>
+                        </button>
                       </td>
                       <td className="px-6 py-4 text-slate-300">{user.email}</td>
                       <td className="px-6 py-4 text-slate-300">
@@ -452,6 +553,16 @@ export default function UserManager() {
                       <td className="px-6 py-4 text-slate-400">{formatDate(user.updatedAt)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
+                          <Button
+                            onClick={() => loadUserDetails(user)}
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-slate-400 hover:text-cyan-300"
+                            aria-label={`View ${fullName(user)} reviews & shopping cart`}
+                            title="Reviews & shopping cart"
+                          >
+                            <Eye />
+                          </Button>
                           <Button
                             onClick={() => openEdit(user)}
                             variant="ghost"
@@ -654,6 +765,151 @@ export default function UserManager() {
                 {deleting ? "Deleting..." : "Delete User"}
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      <Dialog open={Boolean(inspectingUser)} onOpenChange={(open) => !open && closeInspector()}>
+          <DialogContent className="max-w-3xl border-violet-400/20 bg-[#11101d] text-white">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">
+                {fullName(inspectingUser)}
+              </DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Activity for <span className="font-medium text-slate-300">{inspectingUser?.email}</span> — reviews & shopping cart.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setDetailTab("reviews")}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition",
+                  detailTab === "reviews"
+                    ? "border-violet-400/50 bg-violet-500/20 text-violet-200"
+                    : "border-white/10 bg-[#090813] text-slate-400 hover:border-violet-400/30 hover:text-slate-200",
+                )}
+              >
+                <ScrollText className="size-4" aria-hidden="true" />
+                Reviews{!detailsLoading && ` (${reviews.length})`}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDetailTab("cart")}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition",
+                  detailTab === "cart"
+                    ? "border-violet-400/50 bg-violet-500/20 text-violet-200"
+                    : "border-white/10 bg-[#090813] text-slate-400 hover:border-violet-400/30 hover:text-slate-200",
+                )}
+              >
+                <ShoppingCart className="size-4" aria-hidden="true" />
+                Shopping Cart{!detailsLoading && ` (${cartItems.length})`}
+              </button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => loadUserDetails(inspectingUser)}
+                className="ml-auto gap-2 text-slate-300 hover:text-violet-300"
+              >
+                <RefreshCw className="size-4" aria-hidden="true" />
+                Refresh
+              </Button>
+            </div>
+
+            <div className="max-h-[50vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#090813]">
+              {detailsLoading ? (
+                <div className="flex flex-col items-center gap-3 px-6 py-16">
+                  <ScrollText className="size-10 animate-pulse text-slate-600" aria-hidden="true" />
+                  <p className="font-semibold text-slate-300">Loading activity...</p>
+                  <p className="text-sm text-slate-500">Fetching from MongoDB.</p>
+                </div>
+              ) : detailsError ? (
+                <div className="px-6 py-12 text-center">
+                  <p className="text-sm font-medium text-rose-300" role="alert">{detailsError}</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => loadUserDetails(inspectingUser)}
+                    className="mt-4 gap-2"
+                  >
+                    <RefreshCw className="size-4" aria-hidden="true" /> Retry
+                  </Button>
+                </div>
+              ) : detailTab === "reviews" ? (
+                reviews.length === 0 ? (
+                  <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
+                    <ScrollText className="size-10 text-slate-700" aria-hidden="true" />
+                    <p className="font-semibold text-slate-300">No reviews yet</p>
+                    <p className="text-sm text-slate-500">
+                      This user hasn't written any product reviews.
+                    </p>
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-white/5">
+                    {reviews.map((review) => (
+                      <li key={review.id} className="flex items-start justify-between gap-4 px-6 py-4">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-white">{review.product}</p>
+                          <div className="mt-1.5 flex items-center gap-2">
+                            <RatingStars value={review.rating} />
+                            <span className="text-xs text-slate-500">{review.date}</span>
+                          </div>
+                          {review.comment && (
+                            <p className="mt-2 text-sm leading-6 text-slate-400">{review.comment}</p>
+                          )}
+                        </div>
+                        <Badge
+                          variant="secondary"
+                          className="shrink-0 bg-violet-500/10 text-violet-200"
+                        >
+                          {review.rating}/5
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : cartItems.length === 0 ? (
+                <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
+                  <ShoppingCart className="size-10 text-slate-700" aria-hidden="true" />
+                  <p className="font-semibold text-slate-300">Shopping cart is empty</p>
+                  <p className="text-sm text-slate-500">
+                    This user doesn't have any items in their active cart.
+                  </p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-white/5">
+                  {cartItems.map((item) => (
+                    <li key={item.id} className="flex items-center gap-4 px-6 py-4">
+                      <div className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-white/10 bg-[#11101d]">
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.product}
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          <ShoppingCart className="size-5 text-slate-600" aria-hidden="true" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-white">{item.product}</p>
+                        {item.tag && (
+                          <p className="truncate text-xs text-slate-500">{item.tag}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-white">${item.unitPrice.toFixed(2)}</p>
+                        <p className="text-xs text-slate-500">
+                          × {item.quantity} = ${(item.unitPrice * item.quantity).toFixed(2)}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
