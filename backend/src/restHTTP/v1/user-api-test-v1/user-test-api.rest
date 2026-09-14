@@ -8,9 +8,19 @@ POST {{baseUrl}}/register
 Content-Type: application/json
 
 {
-    "email": "faii@example.com",
-    "password": "faii",
-    "firstname": "Atcharaporn",
-    "lastname": "Okrathok",
-    "role": "admin"
+    "email": "2teepor@example.com",
+    "password": "2teepor",
+    "firstname": "Teetee",
+    "lastname": "Por"
 }
+
+### PATCH user
+PATCH {{baseUrl}}/6aa0e03ef2ca3cecd1fd2ba1
+Content-Type: application/json
+
+{
+    "address": []
+}
+
+### DELETE user
+DELETE  {{baseUrl}}/6aa69567ca95c4773bfd00ef
