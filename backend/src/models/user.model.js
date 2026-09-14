@@ -15,17 +15,20 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
       default: function () {
-        // ดึงค่า email ปัจจุบันมาตัดเอาเฉพาะข้อความก่อนหน้า @
         if (this.email && this.email.includes("@")) {
           return this.email.split("@")[0];
         }
         return "";
       },
     },
-    firstname: { type: String },
-    lastname: { type: String },
+    firstname: { type: String, default: "" },
+    lastname: { type: String, default: "" },
     phoneNumber: { type: Number },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    role: {
+      type: String,
+      enum: ["user", "admin", "customer"],
+      default: "user",
+    },
     address: [String],
   },
   {

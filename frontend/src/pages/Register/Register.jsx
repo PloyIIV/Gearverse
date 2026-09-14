@@ -8,7 +8,6 @@ import {
   LuEyeClosed,
 } from "react-icons/lu";
 import { PiLockKeyBold } from "react-icons/pi";
-import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
 export default function Register() {
@@ -16,8 +15,6 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [Password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   return (
     <div
@@ -48,6 +45,7 @@ export default function Register() {
              autofill:[-webkit-text-fill-color:white]"
                   id="firstname"
                   type="text"
+                  oninput="this.value = this.value.replace(/\s+/g, '');"
                   required
                 ></input>
               </div>
@@ -66,6 +64,7 @@ export default function Register() {
              autofill:[-webkit-text-fill-color:white]"
                   id="lastname"
                   type="text"
+                  oninput="this.value = this.value.replace(/\s+/g, '');"
                   required
                 ></input>
               </div>
@@ -75,29 +74,24 @@ export default function Register() {
             <label className="text-white" for="email">
               Email Address
             </label>
+
             <div className="relative w-full">
               <LuMail
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 brightness-0 invert opacity-80"
                 alt="email icon"
               />
+
               <input
                 className="pl-10 py-2 rounded-md bg-[#2A2A45] text-white w-full autofill:shadow-[0_0_0_30px_#2A2A45_inset] 
              autofill:[-webkit-text-fill-color:white]"
                 id="email"
                 type="email"
-                onBlur={(e) => {
-                  const value = e.target.value;
-                  if (value && !emailRegex.test(value)) {
-                    setEmailError("The email format is incorrect!");
-                  } else {
-                    setEmailError("");
-                  }
-                }}
+                oninput="this.value = this.value.replace(/\s+/g, '');"
                 required
               ></input>
             </div>
           </div>
-          {emailError && <div></div>}
+
           <div className="flex flex-col">
             <label className="text-white" for="password">
               Password
@@ -112,8 +106,11 @@ export default function Register() {
              autofill:[-webkit-text-fill-color:white]"
                 id="password"
                 type={showPassword ? "text" : "password"}
+                oninput="this.value = this.value.replace(/\s+/g, '');"
                 value={Password}
                 onChange={(e) => setPassword(e.target.value)}
+                minlength="6"
+                maxlength="20"
                 required
               ></input>
               <button
@@ -143,8 +140,11 @@ export default function Register() {
              autofill:[-webkit-text-fill-color:white]"
                 id="confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
+                oninput="this.value = this.value.replace(/\s+/g, '');"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                minlength="6"
+                maxlength="20"
                 required
               ></input>
               <button
@@ -161,7 +161,7 @@ export default function Register() {
             </div>
           </div>
           <label className="flex items-center gap-2 text-white">
-            <input type="checkbox" className="mr-2 cursor-pointer" />
+            <input type="checkbox" className="mr-2 cursor-pointer" required/>
             <span>
               I agree to the{" "}
               <a className="text-[#22D3EE] cursor-pointer">Terms of Service</a>{" "}

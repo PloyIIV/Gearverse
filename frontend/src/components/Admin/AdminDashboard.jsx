@@ -1,6 +1,6 @@
 // Add ability to add product picture pleaseeee
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CalendarDays,
   CircleDollarSign,
@@ -9,16 +9,46 @@ import {
   Tag,
 } from "lucide-react";
 
+const API_URL = "/api/v1/products";
+
 const initialForm = {
   name: "",
   description: "",
   price: "",
   quantity: "",
   date: "",
-  tag: "",
+  category: "",
+  tags: "",
 };
 
-const tags = ["Controller", "Keyboard", "Mouse", "Headset", "Accessory"];
+const categories = ["Controller", "Keyboard", "Mouse", "Headset", "Accessory"];
+
+function toPayload(form) {
+  return {
+    product_name: form.name,
+    description: form.description,
+    price: Number(form.price),
+    stock: Number(form.quantity),
+    category: form.category,
+    tags: form.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean),
+  };
+}
+
+function fromDoc(doc) {
+  return {
+    id: doc._id,
+    name: doc.product_name,
+    description: doc.description,
+    price: doc.price,
+    quantity: doc.stock,
+    category: doc.category,
+    tags: doc.tags ?? [],
+    date: doc.createdAt ? new Date(doc.createdAt).toISOString().slice(0, 10) : "",
+  };
+}
 
 function validateProduct(values) {
   const errors = {};
@@ -41,7 +71,7 @@ function validateProduct(values) {
   }
 
   if (!values.date) errors.date = "Date is required";
-  if (!values.tag) errors.tag = "Tag is required";
+  if (!values.category) errors.category = "Category is required";
 
   return errors;
 }
@@ -61,6 +91,31 @@ export default function AdminDashboard() {
   const [errors, setErrors] = useState({});
   const [products, setProducts] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProducts() {
+      try {
+        const res = await fetch(API_URL);
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || "Failed to load products");
+        if (!cancelled) setProducts((result.data ?? []).map(fromDoc));
+      } catch (error) {
+        if (!cancelled) setLoadError(error.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -72,7 +127,7 @@ export default function AdminDashboard() {
     setSuccessMessage("");
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const nextErrors = validateProduct(form);
 
@@ -82,18 +137,27 @@ export default function AdminDashboard() {
       return;
     }
 
-    setProducts((current) => [
-      {
-        ...form,
-        id: crypto.randomUUID(),
-        price: Number(form.price),
-        quantity: Number(form.quantity),
-      },
-      ...current,
-    ]);
-    setForm(initialForm);
-    setErrors({});
-    setSuccessMessage(`${form.name} was added successfully.`);
+    setSubmitting(true);
+    setLoadError("");
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(toPayload(form)),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Failed to add product");
+
+      setProducts((current) => [fromDoc(result.data), ...current]);
+      setForm(initialForm);
+      setErrors({});
+      setSuccessMessage(`${form.name} was added successfully.`);
+    } catch (error) {
+      setLoadError(error.message);
+      setSuccessMessage("");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const fieldClass = (field) =>
@@ -169,18 +233,26 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label htmlFor="tag" className="flex items-center gap-2 text-sm font-semibold text-slate-200"><Tag className="size-4 text-violet-300" />Tag</label>
-                <select id="tag" name="tag" value={form.tag} onChange={updateField} className={fieldClass("tag")} aria-invalid={Boolean(errors.tag)} aria-describedby={errors.tag ? "tag-error" : undefined}>
-                  <option value="">Select a tag</option>
-                  {tags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
+                <label htmlFor="category" className="flex items-center gap-2 text-sm font-semibold text-slate-200"><Tag className="size-4 text-violet-300" />Category</label>
+                <select id="category" name="category" value={form.category} onChange={updateField} className={fieldClass("category")} aria-invalid={Boolean(errors.category)} aria-describedby={errors.category ? "category-error" : undefined}>
+                  <option value="">Select a category</option>
+                  {categories.map((category) => <option key={category} value={category}>{category}</option>)}
                 </select>
-                <FieldError id="tag-error" message={errors.tag} />
+                <FieldError id="category-error" message={errors.category} />
+              </div>
+
+              <div>
+                <label htmlFor="tags" className="flex items-center gap-2 text-sm font-semibold text-slate-200"><Tag className="size-4 text-violet-300" />Tags</label>
+                <input id="tags" name="tags" value={form.tags} onChange={updateField} className={fieldClass("tags")} placeholder="e.g. RGB, Wireless, Red" aria-invalid={Boolean(errors.tags)} aria-describedby={errors.tags ? "tags-error" : undefined} />
+                <p className="mt-1.5 text-xs text-slate-500">Separate tags with commas (,)</p>
+                <FieldError id="tags-error" message={errors.tags} />
               </div>
 
               <div className="sm:col-span-2">
+                {loadError && <p className="mb-4 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-300" role="alert">{loadError}</p>}
                 {successMessage && <p className="mb-4 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300" role="status">{successMessage}</p>}
-                <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3.5 font-bold transition hover:from-violet-500 hover:to-fuchsia-500 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-[#11101d]">
-                  <PackagePlus className="size-5" aria-hidden="true" /> Add Product
+                <button type="submit" disabled={submitting} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3.5 font-bold transition hover:from-violet-500 hover:to-fuchsia-500 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-[#11101d] disabled:cursor-not-allowed disabled:opacity-60">
+                  <PackagePlus className="size-5" aria-hidden="true" /> {submitting ? "Adding..." : "Add Product"}
                 </button>
               </div>
             </form>
@@ -191,7 +263,15 @@ export default function AdminDashboard() {
             <p className="mt-1 text-sm text-slate-400">New products appear here after validation.</p>
 
             <div className="mt-5 space-y-4">
-              {products.length === 0 ? (
+              {loading ? (
+                <div className="grid min-h-64 place-items-center rounded-3xl border border-dashed border-white/15 bg-[#11101d] p-8 text-center">
+                  <div>
+                    <Gamepad2 className="mx-auto size-10 animate-pulse text-slate-600" aria-hidden="true" />
+                    <p className="mt-4 font-semibold text-slate-300">Loading products...</p>
+                    <p className="mt-1 text-sm text-slate-500">Fetching from MongoDB.</p>
+                  </div>
+                </div>
+              ) : products.length === 0 ? (
                 <div className="grid min-h-64 place-items-center rounded-3xl border border-dashed border-white/15 bg-[#11101d] p-8 text-center">
                   <div>
                     <Gamepad2 className="mx-auto size-10 text-slate-600" aria-hidden="true" />
@@ -205,10 +285,15 @@ export default function AdminDashboard() {
                     <div className="absolute -right-8 -top-8 size-28 rounded-full bg-violet-500/15 blur-2xl" />
                     <div className="relative">
                       <div className="flex items-start justify-between gap-4">
-                        <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-300">{product.tag}</span>
+                        <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-300">{product.category}</span>
                         <span className="text-xs text-slate-400">{product.date}</span>
                       </div>
-                      <h3 className="mt-5 text-lg font-bold">{product.name}</h3>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {product.tags.map((tag) => (
+                          <span key={tag} className="rounded-full border border-violet-400/20 bg-violet-400/10 px-2.5 py-0.5 text-xs text-violet-300">{tag}</span>
+                        ))}
+                      </div>
+                      <h3 className="mt-3 text-lg font-bold">{product.name}</h3>
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-400">{product.description}</p>
                       <div className="mt-5 flex items-end justify-between border-t border-white/10 pt-4">
                         <div><p className="text-xs text-slate-500">Price</p><p className="font-bold text-fuchsia-300">฿{product.price.toLocaleString()}</p></div>

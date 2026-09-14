@@ -49,7 +49,7 @@ export default function Login() {
                 className="text-purple-400 text-xs cursor-pointer"
                 for="password"
               >
-                Forgot Password?
+                <button className="cursor-pointer">Forgot Password?</button>
               </label>
             </div>
             <div className="relative w-full">

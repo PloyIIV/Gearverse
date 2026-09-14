@@ -12,8 +12,8 @@ import MyReviews from "./pages/User/03MyReviews/MyReviews";
 import MyCancellations from "./pages/User/04MyCancellations/MyCancellations";
 import ProductListPage from "./pages/ProductPage/ProductListPage";
 import LayoutAdmin from "#components/Admin/LayoutAdmin";
-import AdminHomepage from "./pages/Admin/AdminHomepage";
 import AdminDashboard from "#components/Admin/AdminDashboard";
+import UserManager from "#components/Admin/UserManager";
 import Login from "./pages/Login/Login";
 import SalePage from "./pages/ProductPage/SalePage";
 
@@ -46,14 +46,17 @@ const routerAdmin = createBrowserRouter([
   {
     path: "/",
     element: <LayoutAdmin />,
-    children: [{ path: "/", element: <AdminDashboard /> }],
+    children: [
+      { path: "/", element: <AdminDashboard /> },
+      { path: "/users", element: <UserManager /> },
+    ],
   },
 ]);
 
 function App() {
   return (
     <>
-      {!true ? (
+      {true ? (
         <RouterProvider router={router} />
       ) : (
         <RouterProvider router={routerAdmin} />

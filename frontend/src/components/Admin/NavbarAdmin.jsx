@@ -1,8 +1,7 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import LogoImg from "../../assets/Artboard1.png";
 import LogoText from "../../assets/Untitled-2.png";
-import { CircleSmall } from "lucide-react";
+import { CircleSmall, LayoutDashboard, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -27,6 +26,35 @@ const NavbarAdmin = () => {
           Admin
         </h3>
       </div>
+      <nav className="hidden items-center gap-2 md:flex">
+        <NavLink
+          to={"/"}
+          end
+          className={({ isActive }) =>
+            `inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+              isActive
+                ? "bg-violet-500/20 text-violet-200"
+                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            }`
+          }
+        >
+          <LayoutDashboard className="size-4" />
+          Dashboard
+        </NavLink>
+        <NavLink
+          to={"/users"}
+          className={({ isActive }) =>
+            `inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+              isActive
+                ? "bg-violet-500/20 text-violet-200"
+                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            }`
+          }
+        >
+          <Users className="size-4" />
+          Users
+        </NavLink>
+      </nav>
       <div>
         <DropdownMenu>
           <DropdownMenuTrigger className={"text-white h-14"} render={<Button className={'bg-gbase-3 ring ring-gbase-1'} />}>

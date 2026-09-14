@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; //เก็บสถานะที่ React กำลังใช้แสดงหน้าเว็บ, สั่งให้ React ทำอะไรบางอย่าง หลังจาก Component ถูกโหลด
+import { useState, useEffect, useRef } from "react"; //เก็บสถานะที่ React กำลังใช้แสดงหน้าเว็บ, สั่งให้ React ทำอะไรบางอย่าง หลังจาก Component ถูกโหลด
 import {
   Truck,
   X,
@@ -37,6 +37,9 @@ import {
   DEFAULT_SHIPPING, //ค่าส่ง
 } from "#lib/cart-service";
 
+//ฟังก์ชัน sync กับ backend (MongoDB) — tie เข้ากับ user_id
+import { fetchCart, syncCart } from "#lib/cart-api";
+
 //เปิด browser
 export default function CartPage() {
   const [items, setItems] = useState([]);  //Cart ที่กำลังแสดงอยู่บนหน้าจอ(เดี๋ยว useEffect จะไปโหลดของจริงมา)
@@ -46,6 +49,16 @@ export default function CartPage() {
   const [promoError, setPromoError] = useState(""); //ข้อความ error
   
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
+
+  const syncTimer = useRef(null);
+
+  //sync กับ MongoDB แบบ debounce (lag 500ms เพื่อไม่ให้ยิง API เยอะเกินไป)
+  const scheduleSync = (nextItems) => {
+    clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => {
+      syncCart(nextItems);
+    }, 500);
+  };
 
   useEffect(() => {
     const loadedItems = getInitialCart(); //เรียก .js ดูว่ามีสินค้ามั้ย
@@ -59,6 +72,21 @@ export default function CartPage() {
         setPromoInput(savedPromoCode); //แสดงในช่อง input
       }
     }
+
+    //ตอนโหลดหน้า: ดึง cart จาก MongoDB มา merge — ถ้า backend มีของให้ backend ชนะ
+    fetchCart()
+      .then((remoteItems) => {
+        if (remoteItems && remoteItems.length > 0) {
+          setItems(remoteItems);
+          saveCart(remoteItems);
+          scheduleSync(remoteItems);
+        } else {
+          scheduleSync(loadedItems);
+        }
+      })
+      .catch(() => {});
+
+    return () => clearTimeout(syncTimer.current);
   }, []);
 
   //ฟังก์ชันที่ทำงานเมื่อกด +, - (id = สินค้าตัวไหน, delta = จะเปลี่ยนจำนวนเท่าไหร่)
@@ -75,6 +103,7 @@ export default function CartPage() {
         .filter(Boolean);
 
       saveCart(updated); //localStorage อัปเดต
+      scheduleSync(updated); //sync กับ MongoDB
       return updated; //React แสดงจำนวนใหม่
     });
   };
@@ -84,6 +113,7 @@ export default function CartPage() {
     setItems((prevItems) => {
       const updated = prevItems.filter((item) => item.id !== id); //เอาทุกตัวที่ไม่ใช่ ID ที่กดลบไว้
       saveCart(updated);
+      scheduleSync(updated); //sync กับ MongoDB
       return updated;
     });
   };
@@ -91,11 +121,13 @@ export default function CartPage() {
   const handleClearAll = () => {
     setItems([]);
     saveCart([]);
+    scheduleSync([]); //sync กับ MongoDB
   };
 
   const handleResetDemo = () => {
     const { items: resetItems, promoCode } = resetToDefaultCart();
     setItems(resetItems); //เอา INITIAL_CART_ITEMS, GEAR30 กลับไปแสดง
+    scheduleSync(resetItems); //sync กับ MongoDB
     const res = validatePromoCode(promoCode);
     setAppliedPromo(res);
     setPromoInput(promoCode);
@@ -481,10 +513,10 @@ export default function CartPage() {
             </DialogHeader>
 
             <div className="bg-[#1d1938] border border-[#332b59] rounded-xl p-4 text-xs text-slate-400 space-y-1 font-mono my-2">
-              <p>Status: Local Cart State Validated</p>
+              <p>Status: Cart Synced to MongoDB</p>
               <p>Items: {totalItemCount} unit(s)</p>
               <p>Promo: {appliedPromo ? appliedPromo.code : "None"}</p>
-              <p>Ready to connect to real backend API anytime!</p>
+              <p>Cart tied to user ID and ready for order checkout.</p>
             </div>
 
             <Button
