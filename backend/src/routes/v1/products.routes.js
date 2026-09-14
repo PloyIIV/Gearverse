@@ -11,8 +11,8 @@ productRouter.get("/", async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.json({
-      message: `ERROR: ${error}`,
+    return res.status(400).json({
+      message: `ERROR: ${error.message}`,
     });
   }
 });
@@ -27,8 +27,8 @@ productRouter.post("/", async (req, res) => {
     })
   } catch (error) {
     console.log(error);
-    return res.json({
-      message: `ERROR: ${error}`,
+    return res.status(400).json({
+      message: `ERROR: ${error.message}`,
     });
   }
 });
