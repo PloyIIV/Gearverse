@@ -1,4 +1,4 @@
-@baseUrl=http://localhost:5000/api/v1/reviews
+@baseUrl=http://localhost:3000/api/v1/reviews
 
 ### GET reviews (optionally ?userId=<user_id>)
 GET {{baseUrl}}
