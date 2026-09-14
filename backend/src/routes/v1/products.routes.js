@@ -6,6 +6,7 @@ export const productRouter = Router();
 // GET / - Fetch all products (User & Admin)
 productRouter.get("/", async (req, res) => {
     try {
+      console.log('test')
         const products = await Product.find({ is_active: true }).populate("category_id", "category_name");
         return res.status(200).json({
             success: true,
