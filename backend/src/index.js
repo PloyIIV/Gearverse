@@ -3,32 +3,26 @@ import cors from "cors";
 import { connectDB } from "./config/db.js";
 import { router as apiRoutes } from "./routes/index.js";
 
+const corsOptions = {
+  origin: "http://localhost:5173/", // URL ของ Frontend ที่ต้องการอนุญาต
+  credentials: true,
+};
+
 const app = express();
-const port = process.env.PORT || 5000;
+const port = 3000;
 
-// Middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors(corsOptions));
+app.use("/api", apiRoutes);
 
-// Health check
-app.get("/", (req, res) => {
-  return res.json({
-    message: "GearVerse API is running 🚀",
+//Centralize error handling middleware
+app.use((err, req, res, next) => {
+  return res.status(500).json({
+    error: "Something went wrong on the server!",
+    message: err.message,
   });
 });
 
-// API Routes
-app.use("/api", apiRoutes);
-
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  return res
-    .status(500)
-    .json({ success: false, message: "Internal server error" });
-});
-
-// Start server after DB connection
 async function start() {
   try {
     await connectDB();

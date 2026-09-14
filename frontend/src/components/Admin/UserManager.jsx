@@ -178,6 +178,8 @@ export default function UserManager() {
   const [deletingUser, setDeletingUser] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [refreshKey, setRefreshKey] = useState(0); //เพิ่มเมื่ออัปเดต list เช่น สร้าง/แก้ไข/ลบ user
+
   const [inspectingUser, setInspectingUser] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [cartItems, setCartItems] = useState([]);
@@ -219,7 +221,7 @@ export default function UserManager() {
     return () => {
       cancelled = true;
     };
-  }, [query, sort, order]);
+  }, [query, sort, order, refreshKey]);
 
   function handleSearchChange(field) {
     return (event) => {
@@ -283,6 +285,7 @@ export default function UserManager() {
       setDialogOpen(false);
       setForm(initialForm);
       setEditingUser(null);
+      setRefreshKey((current) => current + 1); //โหลด list ใหม่ให้เห็น user ที่เพิ่ม/แก้ไข
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -300,6 +303,7 @@ export default function UserManager() {
 
       toast.success("User deleted successfully");
       setDeletingUser(null);
+      setRefreshKey((current) => current + 1); //โหลด list ใหม่หลังลบ
     } catch (error) {
       toast.error(error.message);
     } finally {

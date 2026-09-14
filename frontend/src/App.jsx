@@ -16,6 +16,7 @@ import AdminDashboard from "#components/Admin/AdminDashboard";
 import UserManager from "#components/Admin/UserManager";
 import Login from "./pages/Login/Login";
 import SalePage from "./pages/ProductPage/SalePage";
+import { TruckElectric } from "lucide-react";
 
 const router = createBrowserRouter([
   {
