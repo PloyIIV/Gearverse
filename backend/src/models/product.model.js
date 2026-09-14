@@ -14,4 +14,7 @@ const productSchema = new mongoose.Schema({
     timestamps: true
 })
 
-export const Product = mongoose.model("Product", productSchema)
+export const Product = mongoose.model("Product", productSchema);
+
+// subcategory_id: { type: Schema.ObjectId },
+// manufacturer_id: { type: Schema.ObjectId },

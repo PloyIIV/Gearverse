@@ -19,8 +19,12 @@ productRouter.get("/", async (req, res) => {
 
 productRouter.post("/", async (req, res) => {
   try {
-    const data = await Product.create(req.body);
-    return res.status(201).json({ data });
+    console.log(req.body)
+    const data = await Product.create(req.body)
+    return res.status(200).json({
+      success: true,
+      message: "Created Product successfully."
+    })
   } catch (error) {
     console.log(error);
     return res.status(400).json({
