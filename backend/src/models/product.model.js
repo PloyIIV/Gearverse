@@ -6,6 +6,8 @@ const productSchema = new mongoose.Schema({
     category_id: { type: Schema.ObjectId },
     subcategory_id: { type: Schema.ObjectId },
     manufacturer_id: { type: Schema.ObjectId },
+    category: { type: String },
+    tags: [{ type: String }],
     price: { type: Number },
     stock: { type: Number }
 }, {

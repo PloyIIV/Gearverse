@@ -5,26 +5,26 @@ export const productRouter = Router();
 
 productRouter.get("/", async (req, res) => {
   try {
-    console.log('test')
     const data = await Product.find();
     return res.json({
       data,
     });
   } catch (error) {
     console.log(error);
-    return res.json({
-      message: `ERROR: ${error}`,
+    return res.status(400).json({
+      message: `ERROR: ${error.message}`,
     });
   }
 });
 
 productRouter.post("/", async (req, res) => {
   try {
-    const data = await Product.create(req.body)
+    const data = await Product.create(req.body);
+    return res.status(201).json({ data });
   } catch (error) {
     console.log(error);
-    return res.json({
-      message: `ERROR: ${error}`,
+    return res.status(400).json({
+      message: `ERROR: ${error.message}`,
     });
   }
 });
