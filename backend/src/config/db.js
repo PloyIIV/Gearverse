@@ -14,9 +14,4 @@ export async function connectDB() {
         console.error("MongoDB connection error ❌:", error.message)
         throw error;
     }
-    await mongoose.connect(url, {
-        dbName: 'gearverse'
-    })
-
-    console.log("MongoDB connected 🤞")
 }
