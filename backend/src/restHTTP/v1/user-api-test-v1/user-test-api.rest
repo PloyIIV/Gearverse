@@ -1,0 +1,16 @@
+@baseUrl=http://localhost:5000/api/v1/users
+
+### GET users
+GET {{baseUrl}}
+
+### POST user
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+    "email": "faii@example.com",
+    "password": "faii",
+    "firstname": "Atcharaporn",
+    "lastname": "Okrathok",
+    "role": "admin"
+}

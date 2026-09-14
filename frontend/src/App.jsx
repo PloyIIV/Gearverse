@@ -12,9 +12,10 @@ import MyReviews from "./pages/User/03MyReviews/MyReviews";
 import MyCancellations from "./pages/User/04MyCancellations/MyCancellations";
 import ProductListPage from "./pages/ProductPage/ProductListPage";
 import LayoutAdmin from "#components/Admin/LayoutAdmin";
-import AdminHomepage from "./pages/Admin/AdminHomepage";
 import AdminDashboard from "#components/Admin/AdminDashboard";
+import UserManager from "#components/Admin/UserManager";
 import Login from "./pages/Login/Login";
+import SalePage from "./pages/ProductPage/SalePage";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,8 @@ const router = createBrowserRouter([
       { path: "cart", element: <CartPage /> },
       { path: "product", element: <ProductPage /> }, // products/:category_id/:product_id
       { path: "products/:id", element: <ProductListPage /> },
+      { path: "/sale", element: <SalePage /> },
+
     ],
   },
 ]);
@@ -43,14 +46,17 @@ const routerAdmin = createBrowserRouter([
   {
     path: "/",
     element: <LayoutAdmin />,
-    children: [{ path: "/", element: <AdminDashboard /> }],
+    children: [
+      { path: "/", element: <AdminDashboard /> },
+      { path: "/users", element: <UserManager /> },
+    ],
   },
 ]);
 
 function App() {
   return (
     <>
-      {true ? (
+      {false ? (
         <RouterProvider router={router} />
       ) : (
         <RouterProvider router={routerAdmin} />

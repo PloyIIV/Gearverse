@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const productSchema = new mongoose.Schema({
     product_name: { 
@@ -21,19 +21,24 @@ const productSchema = new mongoose.Schema({
         min: [0, "Stock cannot be negative"] 
     },
     category_id: { 
-        type: mongoose.Schema.Types.ObjectId, 
+        type: Schema.ObjectId, 
         ref: "Category",
         default: null
     },
     subcategory_id: { 
-        type: mongoose.Schema.Types.ObjectId, 
+        type: Schema.ObjectId,
         ref: "SubCategory",
         default: null
     },
     manufacturer_id: { 
-        type: String, 
+        type: Schema.ObjectId,
         default: null 
     },
+    category: { 
+        type: String, 
+        default: "" 
+    },
+    tags: [{ type: String }],
     connectivity_type: { 
         type: String, 
         default: "" 

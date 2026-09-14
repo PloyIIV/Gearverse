@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Search, User, ShoppingBag, Minus, Plus, Heart, Share2, MessageCircle, Globe, Mail, Star, Truck, Shield, Check, ArrowRight, Volume2, ChevronDown, Sparkles } from 'lucide-react';
-import LogoImg from '../../assets/Artboard1.png';
-import LogoText from '../../assets/Untitled-2.png';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Minus, Plus, Heart, Star, Truck, Shield, Check, ArrowRight, Volume2, VolumeX } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { toast } from 'sonner';
 import { soundEngine } from '../../utils/audio';
-import CustomKeyboardImg from '../../assets/custom_keyboard_vct.png';
+import { addToCart } from '#lib/cart-service';
 import CustomKeyboardLOLDImg from '../../assets/custom_keyboard_lol_collab.png';
 import CustomKeyboardLOLWhiteImg from '../../assets/custom_keyboard_lol_white.png';
 import CustomKeyboardLOLPurpleImg from '../../assets/custom_keyboard_lol_purple.png';
@@ -12,8 +12,46 @@ import CustomKeyboardLOLPinkImg from '../../assets/custom_keyboard_lol_pink.png'
 import CustomKeyboardLOLSpecsImg from '../../assets/custom_keyboard_lol_specs_collab.png';
 import CustomMousepadTeemoImg from '../../assets/custom_mousepad_teemo_collab.png';
 import CustomMousepadTeemoRunImg from '../../assets/custom_mousepad_teemo_run.png?v=3';
+import MouseImg from '../../assets/image-product/Gemini_Generated_Image_cfukikcfukikcfuk.jpg';
+import HeadsetImg from '../../assets/image-product/Gemini_Generated_Image_waq5aswaq5aswaq5.jpg';
+
+const PRODUCT_NAME = 'League of Legends X GEARVERSE';
+const UNIT_PRICE = 399;
+
+const SWITCH_OPTIONS = [
+    { id: 'linear', label: 'Linear', name: 'titan linear (45g)', weight: '45g ± 5g', dot: '#EF4444' },
+    { id: 'tactile', label: 'Tactile', name: 'titan tactile brown (55g)', weight: '55g ± 5g', dot: '#D97706' },
+    { id: 'clicky', label: 'Clicky', name: 'titan clicky blue (60g)', weight: '60g ± 5g', dot: '#00FFFF' }
+];
+
+const RELATED_PRODUCTS = [
+    {
+        id: 'vortex-wireless-mouse',
+        name: 'Vortex Wireless Mouse',
+        image: MouseImg,
+        price: 129,
+        to: '/products/mouse',
+        badge: 'NEW',
+    },
+    {
+        id: 'sonic-pro-headset',
+        name: 'Sonic Pro Headset',
+        image: HeadsetImg,
+        price: 189,
+        oldPrice: 219,
+        to: '/products/headset',
+    },
+    {
+        id: 'cyber-desk-mat',
+        name: 'Cyber Desk Mat',
+        image: CustomMousepadTeemoImg,
+        price: 39,
+        to: '/products/custom',
+    },
+];
 
 const ProductPage = () => {
+    const navigate = useNavigate();
     // Array of placeholder images for gallery
     const images = [
         CustomKeyboardLOLDImg,        // 0 (Black)
@@ -35,12 +73,54 @@ const ProductPage = () => {
     // State for selected options
     const [activeColor, setActiveColor] = useState(colors[0]);
     const [activeImage, setActiveImage] = useState(colors[0].image);
-    const [activeSwitch, setActiveSwitch] = useState({ name: 'titan linear (45g)', id: 'linear' });
+    const [activeSwitch, setActiveSwitch] = useState(SWITCH_OPTIONS[0]);
     const [quantity, setQuantity] = useState(1);
+    const [isWishlisted, setIsWishlisted] = useState(false);
+    const [playingSwitch, setPlayingSwitch] = useState(null);
+
+    // ออกจากหน้านี้แล้วเสียงต้องไม่ค้าง
+    useEffect(() => () => soundEngine.stop(), []);
+
+    const startPreview = (switchId) => {
+        setPlayingSwitch(switchId);
+        soundEngine.playSwitchSound(switchId, (endedId) =>
+            setPlayingSwitch((current) => (current === endedId ? null : current))
+        );
+    };
+
+    // กดปุ่มลำโพงครั้งแรก = เล่น กดปุ่มเดิมซ้ำ = หยุด
+    const togglePreview = (switchId) => {
+        if (playingSwitch === switchId) {
+            soundEngine.stop();
+            setPlayingSwitch(null);
+            return;
+        }
+        startPreview(switchId);
+    };
+
+    const handleSwitchSelect = (option) => {
+        setActiveSwitch(option);
+        startPreview(option.id);
+    };
 
     const handleColorChange = (color) => {
         setActiveColor(color);
         setActiveImage(color.image);
+    };
+
+    // เลือกจาก thumbnail แล้วให้ swatch สีอัปเดตตามด้วย ถ้ารูปนั้นเป็นรูปของสี
+    const handleImageSelect = (img) => {
+        setActiveImage(img);
+        const matchingColor = colors.find((color) => color.image === img);
+        if (matchingColor) setActiveColor(matchingColor);
+    };
+
+    const handleWishlistToggle = () => {
+        const next = !isWishlisted;
+        setIsWishlisted(next);
+        toast[next ? 'success' : 'info'](
+            next ? 'Added to your wishlist' : 'Removed from your wishlist'
+        );
     };
 
     const handleQuantityChange = (increment) => {
@@ -52,11 +132,25 @@ const ProductPage = () => {
     };
 
     const handleAddToCart = () => {
+        addToCart({
+            id: `lol-gearverse-${activeSwitch.id}-${activeColor.id}`,
+            name: PRODUCT_NAME,
+            tag: `${activeSwitch.name} • ${activeColor.name}`,
+            unitPrice: UNIT_PRICE,
+            quantity,
+            delivery: 'Est. Delivery: 2-3 Business Days',
+            image: activeImage
+        });
+
         confetti({
             particleCount: 100,
             spread: 70,
             origin: { y: 0.6 },
             colors: ['#BF00FF', '#00FFFF', '#FF007F']
+        });
+
+        toast.success(`Added ${quantity} × ${PRODUCT_NAME} to your cart`, {
+            action: { label: 'View cart', onClick: () => navigate('/cart') }
         });
     };
 
@@ -91,7 +185,7 @@ const ProductPage = () => {
                             {images.map((img, idx) => (
                                 <div
                                     key={idx}
-                                    onClick={() => setActiveImage(img)}
+                                    onClick={() => handleImageSelect(img)}
                                     className={`w-full aspect-video rounded-[8px] overflow-hidden border-2 cursor-pointer transition-all hover:opacity-100 ${activeImage === img ? 'border-[#00FFFF] opacity-100' : 'border-[#2a2a35] opacity-50 hover:border-[#A78BFA]'
                                         }`}
                                 >
@@ -106,7 +200,7 @@ const ProductPage = () => {
                         {/* Title & Price */}
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-4">
-                                <h1 className="text-[28px] font-bold leading-none text-white tracking-wide">League of Legends X GEARVERSE</h1>
+                                <h1 className="text-[28px] font-bold leading-none text-white tracking-wide">{PRODUCT_NAME}</h1>
                                 <div className="px-2 py-0.5 border border-[#00FFFF] bg-[#00FFFF]/10 rounded-[2px] mt-1 hidden sm:block">
                                     <span className="text-[8px] font-black tracking-widest text-[#00FFFF]">IN STOCK</span>
                                 </div>
@@ -123,7 +217,7 @@ const ProductPage = () => {
                             </div>
 
                             <div className="flex items-center gap-3 mt-1">
-                                <span className="text-[22px] font-extrabold text-[#9F7AEA]">399 $</span>
+                                <span className="text-[22px] font-extrabold text-[#9F7AEA]">{UNIT_PRICE} $</span>
                                 <span className="text-[13px] font-medium text-[#8A8A93] line-through pt-1.5">479 $</span>
                                 <div className="px-2 py-0.5 bg-[#F97316] rounded-[2px] mt-1.5">
                                     <span className="text-[8px] font-black tracking-widest text-white">20% OFF</span>
@@ -138,50 +232,43 @@ const ProductPage = () => {
                                 <span className="text-[#00FFFF] lowercase">{activeSwitch.name}</span>
                             </div>
                             <div className="grid grid-cols-3 gap-3">
-                                {/* Linear Switch */}
-                                <button
-                                    onClick={() => { setActiveSwitch({ name: 'titan linear (45g)', id: 'linear' }); soundEngine.playSwitchSound('linear'); }}
-                                    className={`p-3 rounded-[12px] border text-left cursor-pointer group relative overflow-hidden transition-all flex flex-col justify-between h-[85px] ${activeSwitch.id === 'linear' ? 'border-[#00FFFF] bg-[#181423] shadow-[0_0_8px_rgba(0,255,255,0.15)]' : 'border-[#2a2a35] bg-[#0C0C12] hover:bg-[#120F1A]'}`}
-                                >
-                                    <div className="flex items-center justify-between w-full mb-1">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></div>
-                                        <Volume2 className="w-3.5 h-3.5 text-[#8A8A93] group-hover:text-white transition-colors" />
-                                    </div>
-                                    <div className="mt-auto">
-                                        <div className={`text-[12px] font-semibold capitalize ${activeSwitch.id === 'linear' ? 'text-white' : 'text-white/80'}`}>Linear</div>
-                                        <div className="text-[10px] text-[#8A8A93] font-mono mt-0.5">45g ± 5g</div>
-                                    </div>
-                                </button>
+                                {SWITCH_OPTIONS.map((option) => {
+                                    const isActive = activeSwitch.id === option.id;
+                                    const isPlaying = playingSwitch === option.id;
 
-                                {/* Tactile Switch */}
-                                <button
-                                    onClick={() => { setActiveSwitch({ name: 'titan tactile brown (55g)', id: 'tactile' }); soundEngine.playSwitchSound('tactile'); }}
-                                    className={`p-3 rounded-[12px] border text-left cursor-pointer group relative overflow-hidden transition-all flex flex-col justify-between h-[85px] ${activeSwitch.id === 'tactile' ? 'border-[#00FFFF] bg-[#181423] shadow-[0_0_8px_rgba(0,255,255,0.15)]' : 'border-[#2a2a35] bg-[#0C0C12] hover:bg-[#120F1A]'}`}
-                                >
-                                    <div className="flex items-center justify-between w-full mb-1">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-[#D97706]"></div>
-                                        <Volume2 className="w-3.5 h-3.5 text-[#8A8A93] group-hover:text-white transition-colors" />
-                                    </div>
-                                    <div className="mt-auto">
-                                        <div className={`text-[12px] font-semibold capitalize ${activeSwitch.id === 'tactile' ? 'text-white' : 'text-white/80'}`}>Tactile</div>
-                                        <div className="text-[10px] text-[#8A8A93] font-mono mt-0.5">55g ± 5g</div>
-                                    </div>
-                                </button>
+                                    return (
+                                        <div
+                                            key={option.id}
+                                            className={`relative rounded-[12px] border overflow-hidden transition-all h-[85px] ${isActive ? 'border-[#00FFFF] bg-[#181423] shadow-[0_0_8px_rgba(0,255,255,0.15)]' : 'border-[#2a2a35] bg-[#0C0C12] hover:bg-[#120F1A]'}`}
+                                        >
+                                            {/* เลือกชนิด switch (คลิกที่การ์ด) */}
+                                            <button
+                                                onClick={() => handleSwitchSelect(option)}
+                                                aria-pressed={isActive}
+                                                className="absolute inset-0 p-3 text-left cursor-pointer flex flex-col justify-between"
+                                            >
+                                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: option.dot }}></div>
+                                                <div className="mt-auto">
+                                                    <div className={`text-[12px] font-semibold capitalize ${isActive ? 'text-white' : 'text-white/80'}`}>{option.label}</div>
+                                                    <div className="text-[10px] text-[#8A8A93] font-mono mt-0.5">{option.weight}</div>
+                                                </div>
+                                            </button>
 
-                                {/* Clicky Switch */}
-                                <button
-                                    onClick={() => { setActiveSwitch({ name: 'titan clicky blue (60g)', id: 'clicky' }); soundEngine.playSwitchSound('clicky'); }}
-                                    className={`p-3 rounded-[12px] border text-left cursor-pointer group relative overflow-hidden transition-all flex flex-col justify-between h-[85px] ${activeSwitch.id === 'clicky' ? 'border-[#00FFFF] bg-[#181423] shadow-[0_0_8px_rgba(0,255,255,0.15)]' : 'border-[#2a2a35] bg-[#0C0C12] hover:bg-[#120F1A]'}`}
-                                >
-                                    <div className="flex items-center justify-between w-full mb-1">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-[#00FFFF]"></div>
-                                        <Volume2 className="w-3.5 h-3.5 text-[#8A8A93] group-hover:text-white transition-colors" />
-                                    </div>
-                                    <div className="mt-auto">
-                                        <div className={`text-[12px] font-semibold capitalize ${activeSwitch.id === 'clicky' ? 'text-white' : 'text-white/80'}`}>Clicky</div>
-                                        <div className="text-[10px] text-[#8A8A93] font-mono mt-0.5">60g ± 5g</div>
-                                    </div>
-                                </button>
+                                            {/* ฟังเสียง กดซ้ำที่ปุ่มเดิมเพื่อหยุด */}
+                                            <button
+                                                onClick={() => togglePreview(option.id)}
+                                                aria-pressed={isPlaying}
+                                                aria-label={`${isPlaying ? 'Stop' : 'Play'} ${option.label} switch sound`}
+                                                title={isPlaying ? 'Stop sound' : 'Play sound'}
+                                                className={`absolute top-2 right-2 z-10 p-1 rounded-[6px] cursor-pointer transition-colors ${isPlaying ? 'text-[#00FFFF] bg-[#00FFFF]/10' : 'text-[#8A8A93] hover:text-white hover:bg-white/10'}`}
+                                            >
+                                                {isPlaying
+                                                    ? <VolumeX className="w-3.5 h-3.5" />
+                                                    : <Volume2 className="w-3.5 h-3.5" />}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -227,11 +314,16 @@ const ProductPage = () => {
                         {/* Actions */}
                         <div className="flex items-center gap-3 mt-2">
                             <button onClick={handleAddToCart} className="flex-1 bg-[#9F7AEA] hover:bg-[#8B5CF6] transition-all h-[44px] rounded-[4px] flex items-center justify-center font-bold text-[14px] tracking-wide shadow-[0_0_15px_rgba(159,122,234,0.4)] relative overflow-hidden group">
-                                <span className="relative z-10">Add to cart – {399 * quantity} $</span>
+                                <span className="relative z-10">Add to cart – {UNIT_PRICE * quantity} $</span>
                                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform"></div>
                             </button>
-                            <button className="w-[44px] h-[44px] border border-[#2a2a35] bg-[#0C0C12] rounded-[4px] flex items-center justify-center hover:border-[#9F7AEA] hover:bg-[#9F7AEA]/10 transition-colors group">
-                                <Heart className="w-4 h-4 text-[#8A8A93] group-hover:text-[#9F7AEA] group-hover:fill-[#9F7AEA]/20 transition-all" />
+                            <button
+                                onClick={handleWishlistToggle}
+                                aria-pressed={isWishlisted}
+                                aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                                className={`w-[44px] h-[44px] border bg-[#0C0C12] rounded-[4px] flex items-center justify-center transition-colors group ${isWishlisted ? 'border-[#9F7AEA] bg-[#9F7AEA]/10' : 'border-[#2a2a35] hover:border-[#9F7AEA] hover:bg-[#9F7AEA]/10'}`}
+                            >
+                                <Heart className={`w-4 h-4 transition-all ${isWishlisted ? 'text-[#9F7AEA] fill-[#9F7AEA]' : 'text-[#8A8A93] group-hover:text-[#9F7AEA] group-hover:fill-[#9F7AEA]/20'}`} />
                             </button>
                         </div>
 
@@ -311,46 +403,37 @@ const ProductPage = () => {
                         <div className="w-1 h-4 bg-[#00FFFF] shadow-[0_0_8px_#00FFFF]"></div>
                         <h2 className="text-[16px] font-bold uppercase tracking-[1.5px]">You Might Also Like</h2>
                     </div>
-                    <button className="flex items-center gap-1.5 text-[10px] text-[#00FFFF] hover:text-white transition-colors group">
+                    <Link to="/products/all" className="flex items-center gap-1.5 text-[10px] text-[#00FFFF] hover:text-white transition-colors group">
                         VIEW MORE <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                    </button>
+                    </Link>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Related Product 1 */}
-                    <div className="bg-[#0C0C12] border border-[#2a2a35] rounded-xl overflow-hidden hover:border-[#9F7AEA] transition-all group">
-                        <div className="aspect-[4/3] bg-[#181423] overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1599518532481-3cb5fa1699f7?q=80&w=2072&auto=format&fit=crop" alt="Mouse" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
-                        </div>
-                        <div className="p-5 flex flex-col gap-2 relative">
-                            <div className="absolute -top-4 right-4 bg-[#00FFFF] text-black text-[9px] font-bold px-2 py-0.5 rounded-sm shadow-[0_0_8px_rgba(0,255,255,0.4)]">NEW</div>
-                            <h3 className="text-[14px] font-bold text-white group-hover:text-[#9F7AEA] transition-colors">Vortex Wireless Mouse</h3>
-                            <span className="text-[13px] font-medium text-[#8A8A93]">129 $</span>
-                        </div>
-                    </div>
-                    {/* Related Product 2 */}
-                    <div className="bg-[#0C0C12] border border-[#2a2a35] rounded-xl overflow-hidden hover:border-[#9F7AEA] transition-all group">
-                        <div className="aspect-[4/3] bg-[#181423] overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=1888&auto=format&fit=crop" alt="Headset" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
-                        </div>
-                        <div className="p-5 flex flex-col gap-2">
-                            <h3 className="text-[14px] font-bold text-white group-hover:text-[#9F7AEA] transition-colors">Sonic Pro Headset</h3>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[13px] font-extrabold text-[#9F7AEA]">189 $</span>
-                                <span className="text-[10px] text-[#8A8A93] line-through">219 $</span>
+                    {RELATED_PRODUCTS.map((product) => (
+                        <Link
+                            key={product.id}
+                            to={product.to}
+                            className="bg-[#0C0C12] border border-[#2a2a35] rounded-xl overflow-hidden hover:border-[#9F7AEA] transition-all group"
+                        >
+                            <div className="aspect-[4/3] bg-[#181423] overflow-hidden">
+                                <img src={product.image} alt={product.name} className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
                             </div>
-                        </div>
-                    </div>
-                    {/* Related Product 3 */}
-                    <div className="bg-[#0C0C12] border border-[#2a2a35] rounded-xl overflow-hidden hover:border-[#9F7AEA] transition-all group hidden md:block">
-                        <div className="aspect-[4/3] bg-[#181423] overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1629429408209-1f912961dbd8?q=80&w=2070&auto=format&fit=crop" alt="Mousepad" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
-                        </div>
-                        <div className="p-5 flex flex-col gap-2">
-                            <h3 className="text-[14px] font-bold text-white group-hover:text-[#9F7AEA] transition-colors">Cyber Desk Mat</h3>
-                            <span className="text-[13px] font-medium text-[#8A8A93]">39 $</span>
-                        </div>
-                    </div>
+                            <div className="p-5 flex flex-col gap-2 relative">
+                                {product.badge && (
+                                    <div className="absolute -top-4 right-4 bg-[#00FFFF] text-black text-[9px] font-bold px-2 py-0.5 rounded-sm shadow-[0_0_8px_rgba(0,255,255,0.4)]">{product.badge}</div>
+                                )}
+                                <h3 className="text-[14px] font-bold text-white group-hover:text-[#9F7AEA] transition-colors">{product.name}</h3>
+                                {product.oldPrice ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[13px] font-extrabold text-[#9F7AEA]">{product.price} $</span>
+                                        <span className="text-[10px] text-[#8A8A93] line-through">{product.oldPrice} $</span>
+                                    </div>
+                                ) : (
+                                    <span className="text-[13px] font-medium text-[#8A8A93]">{product.price} $</span>
+                                )}
+                            </div>
+                        </Link>
+                    ))}
                 </div>
             </section>
 

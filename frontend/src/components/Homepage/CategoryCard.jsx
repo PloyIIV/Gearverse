@@ -1,14 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const CategoryCard = ({ img }) => {
+const CategoryCard = ({ img, name }) => {
   return (
-    <Link className="relative">
-      <img src={img} alt="" />
-      <p className="text-white font-semibold absolute bottom-6 left-1/2 -translate-x-1/2">
-        View All {"➜"}
-      </p>
-    </Link>
+    <div className="border border-gpurple-2 rounded-4xl">
+      <Link to={`/products/${name}`} className="relative">
+        <img src={img} alt={name} className="rounded-4xl" />
+        <div className="font-bold absolute bottom-2 left-1/2 -translate-x-1/2 text-center">
+          <p className="text-white tracking-widest">{name.toUpperCase()}</p>
+        </div>
+      </Link>
+    </div>
   );
 };
 

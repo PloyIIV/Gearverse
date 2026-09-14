@@ -18,7 +18,7 @@ productRouter.get("/", async (req, res) => {
     }
 });
 
-// GET /:id - Get single product by ID (User & Admin)
+// GET /:id - Get single product by ID
 productRouter.get("/:id", async (req, res) => {
     try {
         const product = await Product.findById(req.params.id).populate("category_id", "category_name");
@@ -35,8 +35,9 @@ productRouter.get("/:id", async (req, res) => {
 // POST / - Create (save) a new product to store (Admin)
 productRouter.post("/", async (req, res) => {
     try {
+        console.log(req.body);
         const product = await Product.create(req.body);
-        return res.status(201).json({ success: true, data: product });
+        return res.status(201).json({ success: true, message: "Created Product successfully.", data: product });
     } catch (error) {
         console.error("POST /products error:", error);
         return res.status(400).json({ success: false, message: error.message });
