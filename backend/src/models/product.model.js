@@ -39,6 +39,10 @@ const productSchema = new mongoose.Schema({
         default: "" 
     },
     tags: [{ type: String }],
+    date: {
+        type: Date,
+        default: null
+    },
     connectivity_type: { 
         type: String, 
         default: "" 
