@@ -18,6 +18,7 @@ import UserManager from "#components/Admin/UserManager";
 import Login from "./pages/Login/Login";
 import SalePage from "./pages/ProductPage/SalePage";
 import { TruckElectric } from "lucide-react";
+import PromotionPage from "./pages/Admin/PromotionPage";
 
 const router = createBrowserRouter([
   {
@@ -52,6 +53,7 @@ const routerAdmin = createBrowserRouter([
       { path: "/", element: <AdminDashboard /> },
       { path: "/admin-sandbox", element: <AdminSandbox /> }, // test reusable component here.
       { path: "/users", element: <UserManager /> },
+      { path: '/promotion', element: <PromotionPage />}
     ],
   },
 ]);
