@@ -11,6 +11,7 @@ import { kbswitchRouter } from "./kb-switch.routes.js";
 // นำเข้า Router ของ Keycap และ Tag ที่สร้างขึ้นใหม่
 import { keycapRouter } from "./keycap.routes.js";
 import { tagRouter } from "./tags.routes.js";
+import { wishlistRouter } from "./wishlists.routes.js";
 
 export const router = Router();
 
@@ -28,3 +29,4 @@ router.use('/kbswitch', kbswitchRouter);
 router.use('/keycaps', keycapRouter);
 // เชื่อมต่อเส้นทาง API สำหรับจัดการ Tag สินค้า (/api/v1/tags)
 router.use('/tags', tagRouter);
+router.use('/wishlists', wishlistRouter)

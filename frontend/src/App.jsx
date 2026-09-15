@@ -13,6 +13,7 @@ import MyCancellations from "./pages/User/04MyCancellations/MyCancellations";
 import ProductListPage from "./pages/ProductPage/ProductListPage";
 import LayoutAdmin from "#components/Admin/LayoutAdmin";
 import AdminDashboard from "#components/Admin/AdminDashboard";
+import AdminSandbox from "#components/Admin/AdminSandbox";
 import UserManager from "#components/Admin/UserManager";
 import Login from "./pages/Login/Login";
 import SalePage from "./pages/ProductPage/SalePage";
@@ -49,6 +50,7 @@ const routerAdmin = createBrowserRouter([
     element: <LayoutAdmin />,
     children: [
       { path: "/", element: <AdminDashboard /> },
+      { path: "/admin-sandbox", element: <AdminSandbox /> }, // test reusable component here.
       { path: "/users", element: <UserManager /> },
     ],
   },
@@ -57,7 +59,7 @@ const routerAdmin = createBrowserRouter([
 function App() {
   return (
     <>
-      {true ? (
+      {false ? (
         <RouterProvider router={router} />
       ) : (
         <RouterProvider router={routerAdmin} />

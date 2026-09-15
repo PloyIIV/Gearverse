@@ -61,27 +61,34 @@ orderRouter.post("/", async (req, res) => {
   try {
     const { user_id, items, shipping_address, payment_method } = req.body;
 
-    const productIds = items.map((item) => item.product_id)
-    const response = await Product.find({ _id: { $in: productIds }})
+    const productIds = items.map((item) => item.product_id);
+    const response = await Product.find({ _id: { $in: productIds } });
 
-    for(let i=0; i < items.length; i++) {
-        items[i].unit_price = response[i].price * items[i].quantity
+    for (let i = 0; i < items.length; i++) {
+      for (let j = 0; j < response.length; j++) {
+        if (response[j]._id == items[i].product_id) {
+          items[i].unit_price = response[j].price * items[i].quantity;
+        }
+      }
     }
 
     // Calculate total_price and total_quantity from items
-    const total_quantity = await items.reduce((sum, item) => sum + item.quantity, 0);
+    const total_quantity = await items.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
     const total_price = await items.reduce(
-      (sum, item) => sum + item.unit_price * item.quantity,
+      (sum, item) => sum + item.unit_price,
       0,
     );
 
     const order = await Order.create({
-        user_id,
-        items,
-        total_quantity,
-        total_price,
-        shipping_address,
-        payment_method
+      user_id,
+      items,
+      total_quantity,
+      total_price,
+      shipping_address,
+      payment_method,
     });
 
     return res.status(201).json({ success: true, data: order });
@@ -119,15 +126,24 @@ orderRouter.delete("/:id", async (req, res) => {
         .status(404)
         .json({ success: false, message: "Order not found" });
     }
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Order deleted successfully",
-        data: order,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Order deleted successfully",
+      data: order,
+    });
   } catch (error) {
     console.error("DELETE /orders/:id error:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// "product_id": "6aa7de7729b84330cde14caa",
+//         "quantity": 5
+//     },{
+//         "product_id": "6aa7ddb429b84330cde14ca8",
+//         "quantity": 2
+//         },
+//         {
+//             "product_id": "6aa29b160d73bb48cdf90816",
+//             "quantity": 4
+//         }
