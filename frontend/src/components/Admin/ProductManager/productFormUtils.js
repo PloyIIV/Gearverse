@@ -27,6 +27,7 @@ export function toPayload(form) {
       .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean),
+    date: form.date,
   };
 }
 
@@ -39,7 +40,7 @@ export function fromDoc(doc) {
     quantity: doc.stock,
     category: doc.category,
     tags: doc.tags ?? [],
-    date: doc.createdAt ? new Date(doc.createdAt).toISOString().slice(0, 10) : "",
+    date: doc.date ? new Date(doc.date).toISOString().slice(0, 10) : "",
   };
 }
 
