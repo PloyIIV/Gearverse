@@ -1,10 +1,12 @@
 import axios from "axios";
-import { Button } from "#components/ui/button";
-import { Label } from "#components/ui/label";
-import { Plus, Search, TicketPercent, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { ArrowUpDown, Plus, Search, TicketPercent, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -13,11 +15,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Header from "#components/Admin/Header";
-import { FieldError } from "#components/ui/field";
-import DialogForm from "#components/Admin/DialogForm";
-import UserSearch from "#components/Admin/UserManager/UserSearch";
-import UserList from "#components/Admin/UserManager/UserList";
+import DialogForm from "#components/Admin/Promotion/DialogForm";
 import PromotionList from "#components/Admin/Promotion/PromotionList";
+import { Ring } from "#components/ring";
+import { Label } from "#components/ui/label";
 const PromotionPage = () => {
   const url = "http://localhost:3000/api/v1";
   const [loading, setLoading] = useState(null);
@@ -76,6 +77,13 @@ const PromotionPage = () => {
     setLoading(false);
   };
 
+  const getQueryData = async () => {
+    setLoading(true);
+    const res = await axios.get(`${url}/promo?name=${query.name}`);
+    setData(res.data.data);
+    setLoading(false);
+  };
+
   useEffect(() => {
     fetchApi();
   }, []);
@@ -125,9 +133,7 @@ const PromotionPage = () => {
                       </p>
                     )}
                     <div className="w-full text-end">
-                      <Button type="button" onClick={() => {}}>
-                        Cancel
-                      </Button>
+                      <DialogClose render={<Button>Cancel</Button>} />
                       <Button
                         type="submit"
                         onClick={handleSubmit}
@@ -142,7 +148,59 @@ const PromotionPage = () => {
             </Dialog>
           </div>
         </header>
-        <PromotionList data={data} setData={setData} loading={loading} />
+        <div className="bg-gbg-2/60 border border-gbase-1 shadow-2xl shadow-gpurple-5/30 rounded-2xl">
+          <div className="pt-4 px-4">
+            <Label className={"ml-1 mb-2"}>Search</Label>
+            <Field orientation="horizontal" className={"relative bor"}>
+              <Search
+                className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-slate-500"
+                aria-hidden="true"
+              />
+              <Input
+                className={
+                  "w-full rounded-xl border border-white/10 bg-[#090813] py-3 pr-4 pl-10 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30"
+                }
+                type="search"
+                placeholder="Search..."
+                onChange={(e) => setQuery({ ...query, name: e.target.value })}
+              />
+              <Button
+                onClick={getQueryData}
+                className={
+                  "rounded-xl border border-gpurple-2 bg-gpurple-3 hover:bg-gpurple-2"
+                }
+              >
+                Search
+              </Button>
+            </Field>
+          </div>
+          <div className="py-4 px-4">
+            <Label>Sort by</Label>
+            <div className="mt-2 flex gap-2">
+              <Button
+                className={"border border-gbase-1 bg-gbase-3"}
+                type="button"
+              >
+                Created at
+                <ArrowUpDown />
+              </Button>
+              <Button
+                className={"border border-gbase-1 bg-gbase-3"}
+                type="button"
+              >
+                Updated at
+                <ArrowUpDown />
+              </Button>
+            </div>
+          </div>
+          {!loading ? (
+            <PromotionList data={data} setData={setData} loading={loading} />
+          ) : (
+            <div className="flex justify-center">
+              <Ring className="size-20" />
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

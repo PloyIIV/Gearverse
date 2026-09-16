@@ -5,12 +5,22 @@ export const promoRouter = Router();
 
 promoRouter.get("/", async (req, res, next) => {
   try {
+    console.log(req.query);
+    const { name } = req.query;
+    if (name) {
+      const response = await Promo.find({
+        name: { $regex: name, $options: "i" },
+      });
+      return res.json({
+        data: response,
+      });
+    }
     const response = await Promo.find();
-    console.log(response);
     return res.json({
       data: response,
     });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 });
