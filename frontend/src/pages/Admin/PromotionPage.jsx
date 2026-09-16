@@ -20,13 +20,13 @@ import UserList from "#components/Admin/UserManager/UserList";
 import PromotionList from "#components/Admin/Promotion/PromotionList";
 const PromotionPage = () => {
   const url = "http://localhost:3000/api/v1";
-  const [loading, setLoading] = useState(null)
+  const [loading, setLoading] = useState(null);
   const SORTABLE_COLUMNS = [
     { value: "name", label: "Name" },
     { value: "createdAt", label: "Created at" },
     { value: "updatedAt", label: "Updated at" },
   ];
-  const [data, setData] = useState([])
+  const [data, setData] = useState([]);
   const [query, setQuery] = useState({
     name: "",
     max_use: "",
@@ -69,16 +69,16 @@ const PromotionPage = () => {
   const editingUser = () => {};
 
   const fetchApi = async () => {
-    setLoading(true)
-    const res = await axios.get(`${url}/promo`)
-    console.log(res.data.data)
-    setData(res.data.data)
-    setLoading(false)
-  }
+    setLoading(true);
+    const res = await axios.get(`${url}/promo`);
+    console.log(res.data.data);
+    setData(res.data.data);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    fetchApi()
-  }, [])
+    fetchApi();
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#090813] px-4 py-10 text-white sm:px-6 lg:px-10">
@@ -91,7 +91,9 @@ const PromotionPage = () => {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-3 rounded-2xl border border-violet-400/20 bg-violet-500/10 px-4 py-3">
               <TicketPercent className="size-5 text-violet-300" />
-              <span className="text-sm font-semibold">{"เลข "}Promotions</span>
+              <span className="text-sm font-semibold">
+                {!loading ? `${data.length} ` : "loading..."}Promotions
+              </span>
             </div>
 
             <Dialog>

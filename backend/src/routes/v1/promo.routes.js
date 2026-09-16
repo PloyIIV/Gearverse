@@ -36,9 +36,9 @@ promoRouter.post("/", async (req, res, next) => {
       !promo_start ||
       !expire_at
     ) {
-        return res.json({
-            message: "Data required"
-        })
+      return res.json({
+        message: "Data required",
+      });
     }
     const response = await Promo.create({
       name,
@@ -62,15 +62,21 @@ promoRouter.post("/", async (req, res, next) => {
 promoRouter.put("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { is_active, max_use, promo_start, expire_at, description } =
+      req.body;
     const response = await Promo.findByIdAndUpdate(id, {
       is_active,
       max_use,
+      promo_start,
+      expire_at,
+      description,
     });
     console.log(response);
     return res.json({
       message: "Updated successfully.",
     });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 });

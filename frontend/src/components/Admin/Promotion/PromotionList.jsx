@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "#components/ui/table";
+import { Textarea } from "#components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,21 +22,54 @@ import {
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import axios from "axios";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-const PromotionList = ({ data, setData, loading }) => {
-  const getDate = () => {};
-  useEffect(() => {
-    console.log(data[0]);
-  }, [data]);
+const toDateInputValue = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (isNaN(date)) return "";
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const DateInput = ({ value }) => {
+  const [expireAt, setExpireAt] = useState(toDateInputValue(value));
+
+  return (
+    <Input
+      id="expire_at"
+      name="expire_at"
+      type="date"
+      value={expireAt}
+      onChange={(e) => setExpireAt(e.target.value)}
+      className={"border-gbase-1 rounded-xl"}
+    />
+  );
+};
+
+const PromotionList = ({ data, loading }) => {
+  const url = "http://localhost:3000/api/v1/promo";
+  const updateData = async (e, index, id) => {
+    e.preventDefault();
+    console.log(data, id);
+    const formData = new FormData(e.target);
+    const response = await axios.put(`${url}/${id}`, {
+      ...data[index],
+      description: formData.get("description"),
+    });
+    console.log(response);
+  };
   return (
     <div>
       <Table>
         <TableCaption>Total: {data.length} Promotions</TableCaption>
         <TableHeader>
           <TableRow className={"border-b-gbase-1 text-gray-500"}>
-            <TableHead className="w-[100px]">Promotion</TableHead>
+            <TableHead>Promotion</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Created at</TableHead>
             <TableHead>Updated at</TableHead>
@@ -44,7 +78,7 @@ const PromotionList = ({ data, setData, loading }) => {
         </TableHeader>
         <TableBody>
           {!loading ? (
-            data.map((item) => {
+            data.map((item, index) => {
               return (
                 <TableRow key={item._id} className={"border-b-gbase-1"}>
                   <TableCell className="font-medium text-gpurple-2">
@@ -55,13 +89,11 @@ const PromotionList = ({ data, setData, loading }) => {
                   <TableCell>{item.updatedAt}</TableCell>
                   <TableCell>
                     <Dialog>
-                      <form>
-                        <DialogTrigger
-                          render={
-                            <Button variant="outline">View detail</Button>
-                          }
-                        />
-                        <DialogContent className="sm:max-w-sm bg-gbase-4 text-white">
+                      <DialogTrigger
+                        render={<Button variant="outline">View detail</Button>}
+                      />
+                      <DialogContent className="sm:max-w-sm bg-gbase-4 text-white">
+                        <form onSubmit={(e) => updateData(e, index, item._id)}>
                           <DialogHeader>
                             <DialogTitle>PROMOTION DETAIL</DialogTitle>
                             <DialogDescription
@@ -116,25 +148,33 @@ const PromotionList = ({ data, setData, loading }) => {
                                   />
                                 </div>
                               </div>
-                              <Label htmlFor="expire_at">Expire date</Label>
-                              <Input
-                                id="expire_at"
-                                name="expire_at"
-                                type="date"
-                                value={item.expire_at}
-                                defaultValue={item.expire_at}
+                              <Label htmlFor="description">Description</Label>
+                              <Textarea
+                                type="text"
+                                id="description"
+                                name="description"
                                 className={"border-gbase-1 rounded-xl"}
+                                defaultValue={item.description}
                               />
+                              <Label htmlFor="promo_start">Start date</Label>
+                              <DateInput value={item.promo_start} />
+                              <Label htmlFor="expire_at">Expire date</Label>
+                              <DateInput value={item.expire_at} />
                             </Field>
                           </FieldGroup>
-                          <DialogFooter>
+                          <DialogFooter className={"mt-4"}>
                             <DialogClose
                               render={<Button variant="outline">Cancel</Button>}
                             />
-                            <Button type="submit">Save changes</Button>
+                            <Button
+                              type="submit"
+                              className="flex items-center justify-center gap-2 bg-linear-to-r from-violet-600 to-fuchsia-600 px-5 py-3.5 font-bold transition hover:from-violet-500 hover:to-fuchsia-500 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-[#11101d] disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              Save changes
+                            </Button>
                           </DialogFooter>
-                        </DialogContent>
-                      </form>
+                        </form>
+                      </DialogContent>
                     </Dialog>
                   </TableCell>
                 </TableRow>
@@ -197,3 +237,6 @@ export default PromotionList;
             </Select>
           </Field> */
 }
+// useEffect(() => {
+//   setExpireAt(toDateInputValue(value));
+// }, [value]);
