@@ -13,33 +13,33 @@ import axios from "axios";
 import { useAuth } from "@/contexts/Authentication/AuthContext";
 
 export default function Register() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [Password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { url } = useAuth();
   const [data, setData] = useState({
-    firstname: '',
-    lastname: '',
-    email: '',
-    password: '',
-  })
+    firstname: "",
+    lastname: "",
+    email: "",
+    password: "",
+  });
   const register = async (data) => {
-    const response = await axios.post(`${url}/users/register`, data)
-    if(response.data.success) {
-      navigate('/login')
+    const response = await axios.post(`${url}/users/register`, data);
+    if (response.data.success) {
+      navigate("/login");
     }
-  }
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    register(data)
-  }
+    e.preventDefault();
+    register(data);
+  };
 
   const onChangeHandler = (e) => {
-    setData({...data, [e.target.name]: e.target.value})
-  }
+    setData({ ...data, [e.target.name]: e.target.value });
+  };
   return (
     <div
       style={{
@@ -47,13 +47,16 @@ export default function Register() {
       }}
       className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center p-4"
     >
-      <div className="bg-[#000000]/50 backdrop-blur-lg  flex flex-col justify-center gap-8 items-center p-10 w-full max-w-lg rounded-2xl ">
+      <div className="bg-[#000000]/50 backdrop-blur-lg relative z-10  border border-gbase-1 flex flex-col justify-center gap-8 items-center p-10 w-full max-w-lg rounded-2xl ">
         <div className="text-[#22D3EE]">Ready To Level Up?</div>
         <div className="text-white font-extrabold text-5xl [-webkit-text-stroke:0.5px_#22D3EE] text-shadow-[0_0_32px_#22D3EE]">
           JOIN GEARVERSE
         </div>
         <div className="text-white">Create Your Account</div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8 p-4 w-full">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-8 p-4 w-full"
+        >
           <div className="flex flex-row gap-1.5 ">
             <div className="flex flex-col w-full min-w-0">
               <label className="text-white" for="firstname">
@@ -192,7 +195,7 @@ export default function Register() {
             </div>
           </div>
           <label className="flex items-center gap-2 text-white">
-            <input type="checkbox" className="mr-2 cursor-pointer" required/>
+            <input type="checkbox" className="mr-2 cursor-pointer" required />
             <span>
               I agree to the{" "}
               <a className="text-[#22D3EE] cursor-pointer">Terms of Service</a>{" "}

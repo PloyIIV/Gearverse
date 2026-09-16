@@ -23,6 +23,16 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const logout = async () => {
+    try {
+      await axios.post(`${url}/users/logout`);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -43,7 +53,7 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [url]);
   return (
-    <AuthContext.Provider value={{ user, loading, err, url, login }}>
+    <AuthContext.Provider value={{ user, loading, err, url, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
