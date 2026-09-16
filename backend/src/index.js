@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
 import { router as apiRoutes } from "./routes/index.js";
+import cookieParser from 'cookie-parser'
 
 const corsOptions = {
   origin: "http://localhost:5173", // URL ของ Frontend ที่ต้องการอนุญาต
@@ -12,6 +13,7 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
+app.use(cookieParser())
 app.use(cors(corsOptions));
 app.use("/api", apiRoutes);
 

@@ -2,12 +2,29 @@ import bgImage from "../../assets/bg-2-edited.jpg";
 import { LuMail, LuEye, LuEyeClosed } from "react-icons/lu";
 import { PiLockKeyBold } from "react-icons/pi";
 import { IoEnter, IoGameControllerOutline } from "react-icons/io5";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/Authentication/AuthContext";
 
 export default function Login() {
-  const [Password, setPassword] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [data, setData] = useState({
+    email: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
+
+  const onChangeHandler = (e) => {
+    setData({ ...data, [e.target.name]: e.target.value });
+    console.log(data);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    login(data)
+    navigate('/')
+  }
   return (
     <div
       style={{
@@ -21,7 +38,7 @@ export default function Login() {
           WELCOME
         </div>
         <div className="text-[#22D3EE]">Customer Login</div>
-        <form className="flex flex-col gap-8 w-full p-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8 w-full p-4">
           <div className="flex flex-col">
             <label className="text-white" for="email">
               Email Address
@@ -36,8 +53,10 @@ export default function Login() {
              autofill:[-webkit-text-fill-color:white]"
                 id="email"
                 type="email"
+                name="email"
+                onChange={onChangeHandler}
                 required
-              ></input>
+              />
             </div>
           </div>
           <div className="flex flex-col">
@@ -62,10 +81,11 @@ export default function Login() {
                            autofill:[-webkit-text-fill-color:white]"
                 id="password"
                 type={showPassword ? "text" : "password"}
-                value={Password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={data.password}
+                name="password"
+                onChange={onChangeHandler}
                 required
-              ></input>
+              />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}

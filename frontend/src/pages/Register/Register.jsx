@@ -8,14 +8,38 @@ import {
   LuEyeClosed,
 } from "react-icons/lu";
 import { PiLockKeyBold } from "react-icons/pi";
-import { Link } from "react-router-dom";
+import { data, Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "@/contexts/Authentication/AuthContext";
 
 export default function Register() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [Password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { url } = useAuth();
+  const [data, setData] = useState({
+    firstname: '',
+    lastname: '',
+    email: '',
+    password: '',
+  })
+  const register = async (data) => {
+    const response = await axios.post(`${url}/users/register`, data)
+    if(response.data.success) {
+      navigate('/login')
+    }
+  }
 
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    register(data)
+  }
+
+  const onChangeHandler = (e) => {
+    setData({...data, [e.target.name]: e.target.value})
+  }
   return (
     <div
       style={{
@@ -29,7 +53,7 @@ export default function Register() {
           JOIN GEARVERSE
         </div>
         <div className="text-white">Create Your Account</div>
-        <form className="flex flex-col gap-8 p-4 w-full">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8 p-4 w-full">
           <div className="flex flex-row gap-1.5 ">
             <div className="flex flex-col w-full min-w-0">
               <label className="text-white" for="firstname">
@@ -46,6 +70,8 @@ export default function Register() {
                   id="firstname"
                   type="text"
                   oninput="this.value = this.value.replace(/\s+/g, '');"
+                  name="firstname"
+                  onChange={onChangeHandler}
                   required
                 ></input>
               </div>
@@ -65,6 +91,8 @@ export default function Register() {
                   id="lastname"
                   type="text"
                   oninput="this.value = this.value.replace(/\s+/g, '');"
+                  onChange={onChangeHandler}
+                  name="lastname"
                   required
                 ></input>
               </div>
@@ -87,6 +115,8 @@ export default function Register() {
                 id="email"
                 type="email"
                 oninput="this.value = this.value.replace(/\s+/g, '');"
+                name="email"
+                onChange={onChangeHandler}
                 required
               ></input>
             </div>
@@ -107,8 +137,9 @@ export default function Register() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 oninput="this.value = this.value.replace(/\s+/g, '');"
-                value={Password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={data.password}
+                onChange={onChangeHandler}
+                name="password"
                 minlength="6"
                 maxlength="20"
                 required
@@ -173,7 +204,7 @@ export default function Register() {
             className="px-4 py-2 text-white bg-gradient-to-r from-[#ec4899] via-[#a855f7] to-[#06b6d4] rounded-md cursor-pointer"
             type="submit"
           >
-            INITIALIZE ACCOUNT
+            CREATE AN ACCOUNT
           </button>
         </form>
         <div className="border-t-2 border-gray-500 w-full pt-8 flex justify-center items-center">
