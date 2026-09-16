@@ -176,7 +176,7 @@ export default function UserManager() {
 
     setSubmitting(true);
     try {
-      const url = isEdit ? `${API_URL}/${editingUser.id}` : API_URL;
+      const url = isEdit ? `${API_URL}/${editingUser.id}` : `${API_URL}/register`;
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
