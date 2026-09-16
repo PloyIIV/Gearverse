@@ -4,7 +4,7 @@ import { connectDB } from "./config/db.js";
 import { router as apiRoutes } from "./routes/index.js";
 
 const corsOptions = {
-  origin: "http://localhost:5173/", // URL ของ Frontend ที่ต้องการอนุญาต
+  origin: "http://localhost:5173", // URL ของ Frontend ที่ต้องการอนุญาต
   credentials: true,
 };
 

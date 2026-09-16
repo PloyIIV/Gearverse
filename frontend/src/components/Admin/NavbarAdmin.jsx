@@ -1,7 +1,12 @@
 import { Link, NavLink } from "react-router-dom";
 import LogoImg from "../../assets/Artboard1.png";
 import LogoText from "../../assets/Untitled-2.png";
-import { CircleSmall, LayoutDashboard, Users } from "lucide-react";
+import {
+  CircleSmall,
+  LayoutDashboard,
+  TicketPercent,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,8 +20,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const NavbarAdmin = () => {
   return (
-    <nav className="flex items-center justify-between px-6 py-4 relative shadow-xl shadow-gpurple-5/20">
-      <div className="flex items-center">
+    <nav className="flex items-center justify-between border px-6 py-4 relative shadow-xl shadow-gpurple-5/20">
+      <div className="flex items-center w-1/3">
         <Link to={"/"} className="flex items-center gap-4">
           <img className="w-10 h-10" src={LogoImg} alt="logo" />
           <img className="w-40" src={LogoText} alt="logo text" />
@@ -26,7 +31,7 @@ const NavbarAdmin = () => {
           Admin
         </h3>
       </div>
-      <nav className="hidden items-center gap-2 md:flex">
+      <nav className="hidden justify-center items-center gap-2 md:flex w-1/3">
         <NavLink
           to={"/"}
           end
@@ -54,10 +59,26 @@ const NavbarAdmin = () => {
           <Users className="size-4" />
           Users
         </NavLink>
+        <NavLink
+          to={"/promotion"}
+          className={({ isActive }) =>
+            `inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+              isActive
+                ? "bg-violet-500/20 text-violet-200"
+                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            }`
+          }
+        >
+          <TicketPercent className="size-4" />
+          Promotion
+        </NavLink>
       </nav>
-      <div>
+      <div className="w-1/3 text-end">
         <DropdownMenu>
-          <DropdownMenuTrigger className={"text-white h-14"} render={<Button className={'bg-gbase-3 ring ring-gbase-1'} />}>
+          <DropdownMenuTrigger
+            className={"text-white h-14"}
+            render={<Button className={"bg-gbase-3 ring ring-gbase-1"} />}
+          >
             <Avatar>
               <AvatarImage src="https://github.com/shadcn.png" />
               <AvatarFallback>Name</AvatarFallback>
@@ -76,7 +97,9 @@ const NavbarAdmin = () => {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>Team</DropdownMenuItem>
-              <DropdownMenuItem><Button>Logout</Button></DropdownMenuItem>
+              <DropdownMenuItem>
+                <Button>Logout</Button>
+              </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>

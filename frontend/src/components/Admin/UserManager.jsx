@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Eye,
+  Pencil,
   Plus,
   RefreshCw,
   ScrollText,
+  Search,
   ShoppingCart,
   Star,
   Trash2,
@@ -21,18 +27,90 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import UserSearch from "./UserManager/UserSearch";
-import UserList from "./UserManager/UserList";
-import {
-  formatDate,
-  fromUserDoc,
-  fullName,
-  initialUserForm,
-  toUserPayload,
-  validateUser,
-} from "./UserManager/userUtils";
 
 const API_URL = "/api/v1/users";
+
+const SORTABLE_COLUMNS = [
+  { value: "name", label: "Name" },
+  { value: "email", label: "Email" },
+  { value: "createdAt", label: "Created At" },
+  { value: "updatedAt", label: "Updated At" },
+];
+
+const initialForm = {
+  firstname: "",
+  lastname: "",
+  username: "",
+  email: "",
+  password: "",
+  phoneNumber: "",
+  role: "user",
+  address: "",
+};
+
+function fullName(user) {
+  if (!user) return "";
+  const name = [user.firstname, user.lastname].filter(Boolean).join(" ").trim();
+  return name || user.username || "—";
+}
+
+function formatDate(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function fromDoc(doc) {
+  return {
+    firstname: doc.firstname ?? "",
+    lastname: doc.lastname ?? "",
+    username: doc.username ?? "",
+    email: doc.email ?? "",
+    password: "",
+    phoneNumber: doc.phoneNumber != null ? String(doc.phoneNumber) : "",
+    role: doc.role ?? "user",
+    address: (doc.address ?? []).join(", "),
+  };
+}
+
+function toPayload(form) {
+  return {
+    firstname: form.firstname.trim() || undefined,
+    lastname: form.lastname.trim() || undefined,
+    username: form.username.trim() || undefined,
+    email: form.email.trim() || undefined,
+    password: form.password || undefined,
+    phoneNumber: form.phoneNumber.trim() === "" ? undefined : Number(form.phoneNumber),
+    role: form.role,
+    address: form.address
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean),
+  };
+}
+
+function validateUser(form, isEdit) {
+  const errors = {};
+
+  if (!form.email.trim()) {
+    errors.email = "Email is required";
+  }
+
+  if (!isEdit && !form.password) {
+    errors.password = "Password is required";
+  }
+
+  if (form.phoneNumber.trim() !== "" && Number.isNaN(Number(form.phoneNumber))) {
+    errors.phoneNumber = "Must be a valid number";
+  }
+
+  return errors;
+}
 
 function fromReviewDoc(doc) {
   return {
@@ -86,17 +164,14 @@ export default function UserManager() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const [query, setQuery] = useState({
-    name: "",
-    email: "",
-    address: "",
-    sort: "createdAt",
-    order: "asc",
-  });
+  const [search, setSearch] = useState({ name: "", email: "", address: "" });
+  const [query, setQuery] = useState({ name: "", email: "", address: "" }); // debounced
+  const [sort, setSort] = useState("createdAt");
+  const [order, setOrder] = useState("asc");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [form, setForm] = useState(initialUserForm);
+  const [form, setForm] = useState(initialForm);
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -113,6 +188,11 @@ export default function UserManager() {
   const [detailsError, setDetailsError] = useState("");
 
   useEffect(() => {
+    const timer = setTimeout(() => setQuery(search), 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadUsers() {
@@ -123,8 +203,8 @@ export default function UserManager() {
         if (query.name) params.set("name", query.name);
         if (query.email) params.set("email", query.email);
         if (query.address) params.set("address", query.address);
-        params.set("sort", query.sort);
-        params.set("order", query.order);
+        params.set("sort", sort);
+        params.set("order", order);
 
         const res = await fetch(`${API_URL}?${params.toString()}`);
         const result = await res.json();
@@ -141,18 +221,34 @@ export default function UserManager() {
     return () => {
       cancelled = true;
     };
-  }, [query, refreshKey]);
+  }, [query, sort, order, refreshKey]);
+
+  function handleSearchChange(field) {
+    return (event) => {
+      const { value } = event.target;
+      setSearch((current) => ({ ...current, [field]: value }));
+    };
+  }
+
+  function toggleSort(field) {
+    if (sort === field) {
+      setOrder((current) => (current === "asc" ? "desc" : "asc"));
+    } else {
+      setSort(field);
+      setOrder("asc");
+    }
+  }
 
   function openCreate() {
     setEditingUser(null);
-    setForm(initialUserForm);
+    setForm(initialForm);
     setFormErrors({});
     setDialogOpen(true);
   }
 
   function openEdit(user) {
     setEditingUser(user);
-    setForm(fromUserDoc(user));
+    setForm(fromDoc(user));
     setFormErrors({});
     setDialogOpen(true);
   }
@@ -180,14 +276,14 @@ export default function UserManager() {
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toUserPayload(form)),
+        body: JSON.stringify(toPayload(form)),
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Failed to save user");
 
       toast.success(isEdit ? "User updated successfully" : "User created successfully");
       setDialogOpen(false);
-      setForm(initialUserForm);
+      setForm(initialForm);
       setEditingUser(null);
       setRefreshKey((current) => current + 1); //โหลด list ใหม่ให้เห็น user ที่เพิ่ม/แก้ไข
     } catch (error) {
@@ -267,6 +363,15 @@ export default function UserManager() {
         : "border-white/10 focus:border-violet-400",
     );
 
+  const SortIcon = ({ field }) => {
+    if (sort !== field) return <ArrowUpDown className="size-3.5 text-slate-500" />;
+    return order === "asc" ? (
+      <ArrowUp className="size-3.5 text-violet-300" />
+    ) : (
+      <ArrowDown className="size-3.5 text-violet-300" />
+    );
+  };
+
   return (
     <main className="min-h-screen bg-[#090813] px-4 py-10 text-white sm:px-6 lg:px-10">
       <div className="mx-auto max-w-7xl">
@@ -295,18 +400,199 @@ export default function UserManager() {
         </header>
 
         <section className="overflow-hidden rounded-3xl border border-white/10 bg-[#11101d] shadow-2xl shadow-violet-950/20">
-          <UserSearch onQuery={setQuery} />
+          <div className="grid gap-4 border-b border-white/10 p-5 sm:grid-cols-2 lg:grid-cols-3 lg:p-6">
+            {[
+              { field: "name", label: "Search name", placeholder: "e.g. Kim or Winter" },
+              { field: "email", label: "Search email", placeholder: "e.g. user@mail.com" },
+              { field: "address", label: "Search address", placeholder: "e.g. Bangkok" },
+            ].map(({ field, label, placeholder }) => (
+              <div key={field}>
+                <Label htmlFor={`search-${field}`} className="text-sm font-semibold text-slate-200">
+                  {label}
+                </Label>
+                <div className="relative mt-2">
+                  <Search
+                    className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-500"
+                    aria-hidden="true"
+                  />
+                  <input
+                    id={`search-${field}`}
+                    className="w-full rounded-xl border border-white/10 bg-[#090813] py-3 pr-4 pl-10 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30"
+                    value={search[field]}
+                    onChange={handleSearchChange(field)}
+                    placeholder={placeholder}
+                  />
+                </div>
+              </div>
+            ))}
 
-          <UserList
-            users={users}
-            loading={loading}
-            loadError={loadError}
-            onRetry={() => window.location.reload()}
-            onView={loadUserDetails}
-            onEdit={openEdit}
-            onDelete={setDeletingUser}
-            hasActiveFilters={Boolean(query.name || query.email || query.address)}
-          />
+            <div className="sm:col-span-2 lg:col-span-3">
+              <Label className="text-sm font-semibold text-slate-200">Sort by</Label>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {SORTABLE_COLUMNS.map((column) => (
+                  <button
+                    key={column.value}
+                    type="button"
+                    onClick={() => toggleSort(column.value)}
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition",
+                      sort === column.value
+                        ? "border-violet-400/50 bg-violet-500/20 text-violet-200"
+                        : "border-white/10 bg-[#090813] text-slate-400 hover:border-violet-400/30 hover:text-slate-200",
+                    )}
+                  >
+                    {column.label}
+                    <SortIcon field={column.value} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {loadError && (
+            <div className="flex items-center justify-between gap-4 border-b border-white/10 px-6 py-4">
+              <p className="text-sm text-rose-300" role="alert">{loadError}</p>
+              <Button onClick={() => window.location.reload()} variant="outline" size="sm" className="gap-2">
+                <RefreshCw className="size-4" aria-hidden="true" /> Retry
+              </Button>
+            </div>
+          )}
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-slate-500">
+                  <th className="px-6 py-4 font-semibold">User</th>
+                  <th className="px-6 py-4 font-semibold">Email</th>
+                  <th className="px-6 py-4 font-semibold">Phone</th>
+                  <th className="px-6 py-4 font-semibold">Role</th>
+                  <th className="px-6 py-4 font-semibold">Address</th>
+                  <th className="px-6 py-4 font-semibold">Created At</th>
+                  <th className="px-6 py-4 font-semibold">Updated At</th>
+                  <th className="px-6 py-4 text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <Users className="size-10 animate-pulse text-slate-600" aria-hidden="true" />
+                        <p className="font-semibold text-slate-300">Loading users...</p>
+                        <p className="text-sm text-slate-500">Fetching from MongoDB.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : users.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <Users className="size-10 text-slate-600" aria-hidden="true" />
+                        <p className="font-semibold text-slate-300">No users found</p>
+                        <p className="text-sm text-slate-500">
+                          {search.name || search.email || search.address
+                            ? "Try adjusting your search filters."
+                            : "Create your first user to get started."}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((user) => (
+                    <tr key={user.id} className="border-b border-white/5 transition hover:bg-white/[0.02]">
+                      <td className="px-6 py-4">
+                        <button
+                          type="button"
+                          onClick={() => loadUserDetails(user)}
+                          className="group flex items-center gap-3 text-left"
+                          title={`View ${fullName(user)} reviews & shopping cart`}
+                        >
+                          <div className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 text-xs font-bold text-white">
+                            {fullName(user)
+                              .split(" ")
+                              .map((part) => part[0])
+                              .slice(0, 2)
+                              .join("")
+                              .toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-semibold transition group-hover:text-violet-300">
+                              {fullName(user)}
+                            </p>
+                            <p className="text-xs text-slate-500">@{user.username || "—"}</p>
+                          </div>
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 text-slate-300">{user.email}</td>
+                      <td className="px-6 py-4 text-slate-300">
+                        {user.phoneNumber != null ? user.phoneNumber.toLocaleString() : "—"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge
+                          variant={user.role === "admin" ? "default" : "secondary"}
+                          className={cn(
+                            user.role === "admin" && "bg-violet-500/20 text-violet-200",
+                          )}
+                        >
+                          {user.role}
+                        </Badge>
+                      </td>
+                      <td className="max-w-56 px-6 py-4 text-slate-400">
+                        {user.address?.length ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {user.address.map((line) => (
+                              <span
+                                key={line}
+                                className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-slate-300"
+                              >
+                                {line}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-slate-400">{formatDate(user.createdAt)}</td>
+                      <td className="px-6 py-4 text-slate-400">{formatDate(user.updatedAt)}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            onClick={() => loadUserDetails(user)}
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-slate-400 hover:text-cyan-300"
+                            aria-label={`View ${fullName(user)} reviews & shopping cart`}
+                            title="Reviews & shopping cart"
+                          >
+                            <Eye />
+                          </Button>
+                          <Button
+                            onClick={() => openEdit(user)}
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-slate-400 hover:text-violet-300"
+                            aria-label={`Edit ${fullName(user)}`}
+                          >
+                            <Pencil />
+                          </Button>
+                          <Button
+                            onClick={() => setDeletingUser(user)}
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-slate-400 hover:text-rose-400"
+                            aria-label={`Delete ${fullName(user)}`}
+                          >
+                            <Trash2 />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
