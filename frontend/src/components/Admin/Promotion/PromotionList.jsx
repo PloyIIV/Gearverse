@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import React, { useEffect, useState } from "react";
 import PromotionDetailDialog from "./PromotionDetailDialog";
 
-
 const PromotionList = ({ data, loading }) => {
   const url = "http://localhost:3000/api/v1/promo";
   return (
@@ -37,10 +36,14 @@ const PromotionList = ({ data, loading }) => {
                   <TableCell className="font-medium text-gpurple-2">
                     {item.name}
                   </TableCell>
-                  <TableCell>{item.description.slice(0,50)}...</TableCell>
-                  <TableCell>{item.created_at.slice(0,10)}</TableCell>
-                  <TableCell>{item.promo_start.slice(0,10)}</TableCell>
-                  <TableCell>{item.expire_at.slice(0,10)}</TableCell>
+                  <TableCell>
+                    {item.description.length >= 60
+                      ? `${item.description.slice(0, 60)}...`
+                      : item.description}
+                  </TableCell>
+                  <TableCell>{item.created_at.slice(0, 10)}</TableCell>
+                  <TableCell>{item.promo_start.slice(0, 10)}</TableCell>
+                  <TableCell>{item.expire_at.slice(0, 10)}</TableCell>
                   <TableCell>
                     <PromotionDetailDialog item={item} url={url} />
                   </TableCell>

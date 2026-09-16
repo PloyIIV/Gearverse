@@ -3,7 +3,10 @@ import React from "react";
 
 const DialogForm = ({ handleSubmit, form, setForm }) => {
   return (
-    <form className="text-slate-200 grid gap-4 sm:grid-cols-2">
+    <form
+      onSubmit={handleSubmit}
+      className="text-slate-200 grid gap-4 sm:grid-cols-2"
+    >
       {Object.keys(form).map((item, index) => {
         return (
           <div key={index}>
@@ -17,9 +20,10 @@ const DialogForm = ({ handleSubmit, form, setForm }) => {
                   <input
                     type="radio"
                     id="percent"
-                    name={item}
+                    value={"percent"}
+                    name="discount_type"
                     onChange={(e) =>
-                      setForm({ ...form, [e.target.name]: e.target.value })
+                      setForm({ ...form, discount_type: e.target.value })
                     }
                   />
                   <p className="ml-2">Percent</p>
@@ -31,7 +35,8 @@ const DialogForm = ({ handleSubmit, form, setForm }) => {
                   <input
                     type="radio"
                     id="baht"
-                    name={item}
+                    name="discount_type"
+                    value={"baht"}
                     onChange={(e) =>
                       setForm({ ...form, [e.target.name]: e.target.value })
                     }

@@ -27,6 +27,7 @@ promoRouter.get("/", async (req, res, next) => {
 
 promoRouter.post("/", async (req, res, next) => {
   try {
+    
     const {
       name,
       discount_amount,
@@ -59,12 +60,16 @@ promoRouter.post("/", async (req, res, next) => {
       promo_start,
       expire_at,
       description,
+      created_at: new Date(),
+      is_active: true
     });
-    console.log(response);
     return res.json({
+      message: "Created new promotion successfully.",
       response,
+      success: true,
     });
   } catch (error) {
+    console.log(error)
     next(error);
   }
 });
@@ -80,10 +85,11 @@ promoRouter.put("/:id", async (req, res, next) => {
       promo_start,
       expire_at,
       description,
+      updated_at: new Date()
     });
-    console.log(response);
     return res.json({
       message: "Updated successfully.",
+      success: true,
     });
   } catch (error) {
     console.log(error);

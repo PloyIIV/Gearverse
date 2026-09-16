@@ -64,7 +64,11 @@ const PromotionPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     validateInput();
-    console.log("submitting", form);
+    // console.log("submitting", form);
+    const response = await axios.post(`${url}/promo`, form)
+    if(response.data.success) {
+      fetchApi()
+    }
   };
 
   const editingUser = () => {};
