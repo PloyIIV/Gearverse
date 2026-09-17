@@ -100,7 +100,7 @@ export default function MyReviews() {
 
         const [reviewList, productList] = await Promise.all([
           loadReviews(id),
-          fetch(`${PRODUCTS_URL}/products').then((res) => res.json()),
+          fetch(`${PRODUCTS_URL}/products`).then((res) => res.json()),
         ]);
 
         if (cancelled) return;
