@@ -28,7 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const API_URL = "/api/v1/users";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const SORTABLE_COLUMNS = [
   { value: "name", label: "Name" },
@@ -206,7 +206,7 @@ export default function UserManager() {
         params.set("sort", sort);
         params.set("order", order);
 
-        const res = await fetch(`${API_URL}?${params.toString()}`);
+        const res = await fetch(`${API_URL}/users?${params.toString()}`);
         const result = await res.json();
         if (!res.ok) throw new Error(result.message || "Failed to load users");
         if (!cancelled) setUsers((result.data ?? []).map((doc) => ({ ...doc, id: doc._id })));
@@ -272,7 +272,7 @@ export default function UserManager() {
 
     setSubmitting(true);
     try {
-      const url = isEdit ? `${API_URL}/${editingUser.id}` : `${API_URL}/register`;
+      const url = isEdit ? `${API_URL}/users/${editingUser.id}` : `${API_URL}/users/register`;
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -297,7 +297,7 @@ export default function UserManager() {
     if (!deletingUser) return;
     setDeleting(true);
     try {
-      const res = await fetch(`${API_URL}/${deletingUser.id}`, { method: "DELETE" });
+      const res = await fetch(`${API_URL}/users/${deletingUser.id}`, { method: "DELETE" });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Failed to delete user");
 

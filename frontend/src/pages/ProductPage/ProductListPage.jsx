@@ -17,7 +17,7 @@ const mock_tags = [
 
 const ProductListPage = () => {
   const param = useParams();
-  const url = "http://localhost:3000/api/v1";
+  const url = import.meta.env.VITE_API_URL;
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(null);
   const [price, setPrice] = useState({

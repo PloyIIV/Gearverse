@@ -6,8 +6,8 @@ import UserList from "#components/Admin/UserManager/UserList";
 import { fromDoc } from "./ProductManager/productFormUtils";
 import { DEFAULT_USER_QUERY } from "./UserManager/userUtils";
 
-const API_URL = "/api/v1/products";
-const USERS_API_URL = "/api/v1/users";
+const API_URL = import.meta.env.VITE_API_URL;
+const USERS_API_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminSandbox() {
   const [products, setProducts] = useState([]);
@@ -24,7 +24,7 @@ export default function AdminSandbox() {
 
     async function loadProducts() {
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(`${API_URL}/products`);
         const result = await res.json();
         if (!res.ok) throw new Error(result.message || "Failed to load products");
         if (!cancelled) setProducts((result.data ?? []).map(fromDoc));
@@ -55,7 +55,7 @@ export default function AdminSandbox() {
         params.set("sort", userQuery.sort);
         params.set("order", userQuery.order);
 
-        const res = await fetch(`${USERS_API_URL}?${params.toString()}`);
+        const res = await fetch(`${USERS_API_URL}/users?${params.toString()}`);
         const result = await res.json();
         if (!res.ok) throw new Error(result.message || "Failed to load users");
         if (!cancelled) setUsers((result.data ?? []).map((doc) => ({ ...doc, id: doc._id })));

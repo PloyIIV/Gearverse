@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
         withCredentials: true,
       });
       console.log(response);
+      console.log(response.data.user);
       setUser(response.data.user);
       setLoading(false);
     } catch (error) {

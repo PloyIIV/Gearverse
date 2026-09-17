@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Star, Trash2, PencilLine } from "lucide-react";
 import AccountSidebar from "../AccountSidebar";
 
-const API_URL = "/api/v1/reviews";
-const PRODUCTS_URL = "/api/v1/products";
+const API_URL = import.meta.env.VITE_API_URL;
+const PRODUCTS_URL = import.meta.env.VITE_API_URL;
 const USER_ID_KEY = "gearverseUserId";
 
 function formatDate(value) {
@@ -77,7 +77,7 @@ export default function MyReviews() {
 
   const loadReviews = useMemo(
     () => async (id) => {
-      const res = await fetch(`${API_URL}?userId=${id}`);
+      const res = await fetch(`${API_URL}/reviews?userId=${id}`);
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Failed to load reviews");
       return (result.data ?? []).map(fromDoc);
@@ -100,7 +100,7 @@ export default function MyReviews() {
 
         const [reviewList, productList] = await Promise.all([
           loadReviews(id),
-          fetch(PRODUCTS_URL).then((res) => res.json()),
+          fetch(`${PRODUCTS_URL}/products').then((res) => res.json()),
         ]);
 
         if (cancelled) return;
@@ -128,7 +128,7 @@ export default function MyReviews() {
   async function saveEdit(reviewId) {
     setSaving(true);
     try {
-      const res = await fetch(`${API_URL}/${reviewId}`, {
+      const res = await fetch(`${API_URL}/reviews/${reviewId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rating: editRating, comment: editComment }),
@@ -152,7 +152,7 @@ export default function MyReviews() {
   async function deleteReview(reviewId) {
     setSaving(true);
     try {
-      const res = await fetch(`${API_URL}/${reviewId}`, { method: "DELETE" });
+      const res = await fetch(`${API_URL}/reviews/${reviewId}`, { method: "DELETE" });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Failed to delete review");
       setReviews((current) => current.filter((r) => r.id !== reviewId));
@@ -171,7 +171,7 @@ export default function MyReviews() {
     }
     setCreating(true);
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(`${API_URL}/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
