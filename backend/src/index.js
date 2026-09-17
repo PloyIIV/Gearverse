@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
 import { router as apiRoutes } from "./routes/index.js";
-import cookieParser from 'cookie-parser'
+import cookieParser from "cookie-parser";
 
 const corsOptions = {
   origin: [
@@ -19,7 +19,7 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(cors(corsOptions));
 app.options('*', cors()); // Enable preflight requests
 
@@ -56,3 +56,4 @@ start();
 // connectDB().catch((err) => console.error("Failed to connect to MongoDB:", err.message));
 // export default app;
 
+start();
