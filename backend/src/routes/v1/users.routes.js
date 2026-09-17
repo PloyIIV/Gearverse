@@ -1,6 +1,8 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
 import { User } from "../../models/user.model.js";
+import jwt from "jsonwebtoken";
+import { protect } from "../../middlewares/protect.js";
 
 export const userRouter = Router();
 
@@ -121,6 +123,30 @@ userRouter.delete("/:id", async (req, res, next) => {
   }
 });
 
+//get current user from cookie
+userRouter.get("/me", protect, async (req, res, next) => {
+  try {
+    console.log(req.user);
+    const user = await User.findById(req.user.user._id).select("-password");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        username: user.username,
+        role: user.role,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 //user login
 // เหลือ gen token
 userRouter.post("/login", async (req, res, next) => {
@@ -142,99 +168,169 @@ userRouter.post("/login", async (req, res, next) => {
     }
 
     const isPasswordMatched = await bcrypt.compare(password, user.password);
-
     if (!isPasswordMatched) {
-      return res.status(400).json({ success: "Incorrect password!" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Incorrect password!" });
     }
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Login successfully!" });
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+      expiresIn: "1h",
+    });
 
+    const isProd = process.env.NODE_ENV === "production";
+
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      path: "/",
+      maxAge: 60 * 60 * 1000,
+    });
+    return res.status(200).json({
+      success: true,
+      message: "Login successfully!",
+      user: {
+        _id: user._id,
+        username: user.username,
+        role: user.role,
+        email: user.email,
+      },
+    });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 });
 
-userRouter.post('/register', async (req, res) => {
-    try {
-        const { firstname, lastname, username, email, password, role, phoneNumber, address } = req.body;
-
-        if (!firstname || !lastname || !email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "firstname, lastname, email and password are required!"
-            });
-        }
-
-        const hash = await bcrypt.hash(password, 10);
-
-        const user = await User.create({
-            firstname,
-            lastname,
-            username,
-            email,
-            password: hash,
-            role: role || "user",
-            phoneNumber,
-            address
-        });
-
-        return res.status(201).json({ success: true, data: user });
-    } catch (error) {
-        console.error("POST /users/register error:", error);
-        return res.status(500).json({ success: false, message: error.message });
+userRouter.get("/:id", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
+    return res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    console.error("GET /users/:id error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
 });
 
-userRouter.get('/:id', async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id);
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
-        }
-        return res.status(200).json({ success: true, data: user });
-    } catch (error) {
-        console.error("GET /users/:id error:", error);
-        return res.status(500).json({ success: false, message: error.message });
+userRouter.put("/:id", async (req, res) => {
+  try {
+    const {
+      firstname,
+      lastname,
+      username,
+      email,
+      password,
+      role,
+      phoneNumber,
+      address,
+    } = req.body;
+
+    const updates = {};
+    if (firstname !== undefined) updates.firstname = firstname;
+    if (lastname !== undefined) updates.lastname = lastname;
+    if (username !== undefined) updates.username = username;
+    if (email !== undefined) updates.email = email;
+    if (role !== undefined) updates.role = role;
+    if (phoneNumber !== undefined) updates.phoneNumber = phoneNumber;
+    if (address !== undefined) updates.address = address;
+    if (password) updates.password = await bcrypt.hash(password, 10);
+
+    const user = await User.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
+    return res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    console.error("PUT /users/:id error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
 });
 
-userRouter.put('/:id', async (req, res) => {
-    try {
-        const { firstname, lastname, username, email, password, role, phoneNumber, address } = req.body;
-
-        const updates = {};
-        if (firstname !== undefined) updates.firstname = firstname;
-        if (lastname !== undefined) updates.lastname = lastname;
-        if (username !== undefined) updates.username = username;
-        if (email !== undefined) updates.email = email;
-        if (role !== undefined) updates.role = role;
-        if (phoneNumber !== undefined) updates.phoneNumber = phoneNumber;
-        if (address !== undefined) updates.address = address;
-        if (password) updates.password = await bcrypt.hash(password, 10);
-
-        const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
-
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
-        }
-        return res.status(200).json({ success: true, data: user });
-    } catch (error) {
-        console.error("PUT /users/:id error:", error);
-        return res.status(500).json({ success: false, message: error.message });
-    }
+userRouter.post("/logout", (req, res, next) => {
+  try {
+    const isProd = process.env.NODE_ENV === "production";
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      path: "/",
+      maxAge: 60 * 60 * 1000,
+    });
+    return res.status(200).json({
+      success: true,
+      message: "Logout successfully.",
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
 });
 
-userRouter.delete('/:id', async (req, res) => {
-    try {
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
-        }
-        return res.status(200).json({ success: true, message: "User deleted successfully" });
-    } catch (error) {
-        console.error("DELETE /users/:id error:", error);
-        return res.status(500).json({ success: false, message: error.message });
-    }
-});
+// userRouter.delete("/:id", async (req, res) => {
+//   try {
+//     const user = await User.findByIdAndDelete(req.params.id);
+//     if (!user) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "User not found" });
+//     }
+//     return res
+//       .status(200)
+//       .json({ success: true, message: "User deleted successfully" });
+//   } catch (error) {
+//     console.error("DELETE /users/:id error:", error);
+//     return res.status(500).json({ success: false, message: error.message });
+//   }
+// });
+
+// userRouter.post("/register", async (req, res) => {
+//   try {
+//     const {
+//       firstname,
+//       lastname,
+//       username,
+//       email,
+//       password,
+//       role,
+//       phoneNumber,
+//       address,
+//     } = req.body;
+
+//     if (!firstname || !lastname || !email || !password) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "firstname, lastname, email and password are required!",
+//       });
+//     }
+
+//     const hash = await bcrypt.hash(password, 10);
+
+//     const user = await User.create({
+//       firstname,
+//       lastname,
+//       username,
+//       email,
+//       password: hash,
+//       role: role || "user",
+//       phoneNumber,
+//       address,
+//     });
+
+//     return res.status(201).json({ success: true, data: user });
+//   } catch (error) {
+//     console.error("POST /users/register error:", error);
+//     return res.status(500).json({ success: false, message: error.message });
+//   }
+// });

@@ -19,6 +19,8 @@ import Login from "./pages/Login/Login";
 import SalePage from "./pages/ProductPage/SalePage";
 import { TruckElectric } from "lucide-react";
 import PromotionPage from "./pages/Admin/PromotionPage";
+import { useAuth } from "./contexts/Authentication/AuthContext";
+import { useEffect } from "react";
 
 const router = createBrowserRouter([
   {
@@ -59,12 +61,14 @@ const routerAdmin = createBrowserRouter([
 ]);
 
 function App() {
+  const { user } = useAuth();
+  console.log(user)
   return (
     <>
-      {true ? (
-        <RouterProvider router={router} />
-      ) : (
+      {user?.role === "admin" ? (
         <RouterProvider router={routerAdmin} />
+      ) : (
+        <RouterProvider router={router} />
       )}
     </>
   );
