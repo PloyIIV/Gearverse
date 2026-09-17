@@ -3,7 +3,8 @@ import { AuthContext } from "./AuthContext";
 import axios from "axios";
 
 export function AuthProvider({ children }) {
-  const url = "http://localhost:3000/api/v1";
+  const url = import.meta.env.VITE_API_URL;
+  console.log("this", url)
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(null);
   const [err, setErr] = useState(null);
