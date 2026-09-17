@@ -30,23 +30,6 @@ const productSchema = new mongoose.Schema({
         ref: "SubCategory",
         default: null
     },
-    manufacturer_id: { 
-        type: Schema.ObjectId,
-        default: null 
-    },
-    category: { 
-        type: String, 
-        default: "" 
-    },
-    tags: [{ type: String }],
-    date: {
-        type: Date,
-        default: null
-    },
-    connectivity_type: { 
-        type: String, 
-        default: "" 
-    },
     weight: { 
         type: Number, 
         default: 0 
