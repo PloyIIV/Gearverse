@@ -5,7 +5,8 @@ import { router as apiRoutes } from "./routes/index.js";
 import cookieParser from 'cookie-parser'
 
 const corsOptions = {
-  origin: "http://localhost:5173", // URL ของ Frontend ที่ต้องการอนุญาต
+  origin: true, // allowing vercel domains
+  // origin: "http://localhost:5173", // URL ของ Frontend ที่ต้องการอนุญาต (old code before deploy)
   credentials: true,
 };
 
@@ -25,17 +26,24 @@ app.use((err, req, res, next) => {
   });
 });
 
-async function start() {
-  try {
-    await connectDB();
+//==============old code==============
+// async function start() {
+//   try {
+//     await connectDB();
 
-    app.listen(port, () => {
-      console.log(`Server running on port: ${port} 🏃‍♀️`);
-    });
-  } catch (err) {
-    console.error("Failed to connect to MongoDB:", err.message);
-    process.exit(1);
-  }
-}
+//     app.listen(port, () => {
+//       console.log(`Server running on port: ${port} 🏃‍♀️`);
+//     });
+//   } catch (err) {
+//     console.error("Failed to connect to MongoDB:", err.message);
+//     process.exit(1);
+//   }
+// }
+//==============old code==============
+//start();
 
-start();
+
+//==========new code=======================
+connectDB().catch((err) => console.error("Failed to connect to MongoDB:", err.message));
+export default app;
+
