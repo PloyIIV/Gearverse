@@ -11,9 +11,7 @@ reviewRouter.get("/", async (req, res, next) => {
     if (userId) filter.user_id = userId;
     if (productId) filter.product_id = productId;
 
-    const data = await Review.find(filter)
-      .populate("product_id", "product_name")
-      .sort({ createdAt: -1 });
+    const data = await Review.find(filter).populate("product_id user_id").sort({ createdAt: -1 });
 
     return res.json({ data });
   } catch (error) {
@@ -23,9 +21,14 @@ reviewRouter.get("/", async (req, res, next) => {
 
 reviewRouter.get("/:id", async (req, res, next) => {
   try {
-    const review = await Review.findById(req.params.id).populate("product_id", "product_name");
+    const review = await Review.findById(req.params.id).populate(
+      "product_id",
+      "product_name",
+    );
     if (!review) {
-      return res.status(404).json({ success: false, message: "review not found!" });
+      return res
+        .status(404)
+        .json({ success: false, message: "review not found!" });
     }
     return res.json({ success: true, data: review });
   } catch (error) {
@@ -42,7 +45,13 @@ reviewRouter.post("/", async (req, res, next) => {
         message: "user_id, product_id and rating are required!",
       });
     }
-    const review = await Review.create({ user_id, product_id, orderitem_id, rating, comment });
+    const review = await Review.create({
+      user_id,
+      product_id,
+      orderitem_id,
+      rating,
+      comment,
+    });
     return res.status(201).json({ success: true, data: review });
   } catch (error) {
     next(error);
@@ -58,7 +67,9 @@ reviewRouter.put("/:id", async (req, res, next) => {
       { new: true, runValidators: true },
     );
     if (!review) {
-      return res.status(404).json({ success: false, message: "review not found!" });
+      return res
+        .status(404)
+        .json({ success: false, message: "review not found!" });
     }
     return res.json({ success: true, data: review });
   } catch (error) {
@@ -70,7 +81,9 @@ reviewRouter.delete("/:id", async (req, res, next) => {
   try {
     const review = await Review.findByIdAndDelete(req.params.id);
     if (!review) {
-      return res.status(404).json({ success: false, message: "review not found!" });
+      return res
+        .status(404)
+        .json({ success: false, message: "review not found!" });
     }
     return res.json({ success: true, message: "deleted review successfully!" });
   } catch (error) {
