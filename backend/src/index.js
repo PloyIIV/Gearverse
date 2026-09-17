@@ -6,13 +6,14 @@ import cookieParser from 'cookie-parser'
 
 const corsOptions = {
   origin: [
-    "http://localhost:5173/",
-    "https://team-07-project-gv-sprint2.vercel.app/",
-  ], // URL ของ Frontend ที่ต้องการอนุญาต // allowing vercel domains
-
-  // origin: "http://localhost:5173", // URL ของ Frontend ที่ต้องการอนุญาต (old code before deploy)
+    "http://localhost:5173",
+    "https://team-07-project-gv-sprint2.vercel.app",
+  ],
   credentials: true,
 };
+
+ // URL ของ Frontend ที่ต้องการอนุญาต // allowing vercel domains
+// origin: "http://localhost:5173", // URL ของ Frontend ที่ต้องการอนุญาต (old code before deploy)
 
 const app = express();
 const port = 3000;
@@ -20,7 +21,11 @@ const port = 3000;
 app.use(express.json());
 app.use(cookieParser())
 app.use(cors(corsOptions));
+app.options('*', cors()); // Enable preflight requests
+
 app.use("/api", apiRoutes);
+
+
 
 //Centralize error handling middleware
 app.use((err, req, res, next) => {
