@@ -8,7 +8,7 @@ import {
   validateProduct,
 } from "./productFormUtils";
 
-const API_URL = "/api/v1/products";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function FieldError({ id, message }) {
   if (!message) return null;
@@ -54,7 +54,7 @@ export default function ProductForm({
     setIsSubmitting(true);
     setSubmitError("");
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(`${API_URL}/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(toPayload(form)),

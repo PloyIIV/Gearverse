@@ -4,7 +4,7 @@ import { fromDoc } from "./ProductManager/productFormUtils";
 import ProductForm from "#components/Admin/ProductManager/ProductForm";
 import ProductList from "#components/Admin/ProductManager/ProductList";
 
-const API_URL = "/api/v1/products";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
@@ -16,7 +16,7 @@ export default function AdminDashboard() {
 
     async function loadProducts() {
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(`${API_URL}/products`);
         const result = await res.json();
         if (!res.ok) throw new Error(result.message || "Failed to load products");
         if (!cancelled) setProducts((result.data ?? []).map(fromDoc));

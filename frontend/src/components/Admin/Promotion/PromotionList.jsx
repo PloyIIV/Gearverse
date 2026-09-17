@@ -13,7 +13,7 @@ import React, { useEffect, useState } from "react";
 import PromotionDetailDialog from "./PromotionDetailDialog";
 
 const PromotionList = ({ data, loading }) => {
-  const url = "/api/v1/promo";
+  const url = import.meta.env.VITE_API_URL;
   return (
     <div>
       <Table>
