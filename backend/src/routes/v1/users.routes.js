@@ -237,6 +237,7 @@ userRouter.post("/login", async (req, res, next) => {
     }
 
     const user = await User.findOne({ email }).select("+password");
+    console.log("this is", user)
 
     if (!user) {
       return res
@@ -275,9 +276,6 @@ userRouter.post("/login", async (req, res, next) => {
         email: user.email,
       },
     });
-    return res
-      .status(200)
-      .json({ success: true, message: "Login successfully!" });
   } catch (error) {
     console.log(error);
     next(error);
