@@ -18,7 +18,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/Authentication/AuthContext";
 const NavbarAdmin = () => {
+  const { logout } = useAuth();
   return (
     <nav className="flex items-center justify-between border px-6 py-4 relative shadow-xl shadow-gpurple-5/20">
       <div className="flex items-center w-1/3">
@@ -88,19 +90,21 @@ const NavbarAdmin = () => {
               <p className="text-xs text-[#8B8AA3]">Store Admin</p>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className={"text-white"}>
-            <DropdownMenuGroup>
+          <DropdownMenuContent
+            className={"text-white bg-gbase-3/50 ring-gbase-1 mt-2"}
+          >
+            {/* <DropdownMenuGroup>
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuItem>Profile</DropdownMenuItem>
               <DropdownMenuItem>Billing</DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>Team</DropdownMenuItem>
-              <DropdownMenuItem>
-                <Button>Logout</Button>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+            <DropdownMenuSeparator /> */}
+            {/* <DropdownMenuGroup> */}
+            {/* <DropdownMenuItem>Team</DropdownMenuItem> */}
+            <DropdownMenuItem onClick={logout} className={"hover:bg-gbase-4"}>
+              <Button>Logout</Button>
+            </DropdownMenuItem>
+            {/* </DropdownMenuGroup> */}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

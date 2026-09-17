@@ -16,9 +16,16 @@ import {
   Star,
   User,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/Authentication/AuthContext";
 
 const NavbarAuthenticate = ({ setClick, click }) => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
   return (
     <div className="w-1/5 flex justify-end">
       <NavigationMenu>
@@ -70,7 +77,7 @@ const NavbarAuthenticate = ({ setClick, click }) => {
               {/* // add logout link under here */}
               <NavigationMenuLink
                 className={"text-white gap-4 hover:bg-gbase-3"}
-                onClick={() => setClick(!click)}
+                onClick={handleLogout}
               >
                 <LogOut color="#6B6B8D" />
                 Logout

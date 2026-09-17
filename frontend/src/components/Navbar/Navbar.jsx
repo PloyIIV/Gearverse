@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import LogoImg from "../../assets/Artboard1.png";
 import LogoText from "../../assets/Untitled-2.png";
 import {
@@ -37,11 +37,13 @@ import {
 } from "#components/ui/navigation-menu";
 import NavbarAuthenticate from "./NavbarAuthenticate";
 import NavbarUnauthen from "./NavbarUnauthen";
+import { useAuth } from "@/contexts/Authentication/AuthContext";
 
 const category = ["keyboard", "mouse", "headset", "accessory"];
 
 const Navbar = () => {
   const [click, setClick] = useState(false)
+  const { loading, user } = useAuth();
   return (
     <nav className="bg-gbg-2 w-full h-16 flex items-center justify-between px-10 text-white relative z-20 shadow-xl shadow-gpurple-4/80">
       <Link to={"/"} className="flex items-center gap-4 w-1/3">
@@ -92,7 +94,7 @@ const Navbar = () => {
 
       {/* SEC3 */}
       <div className="w-1/3 flex justify-end">
-        {!click ? <NavbarAuthenticate setClick={setClick} click={click} /> : <NavbarUnauthen />}
+        {user ? <NavbarAuthenticate setClick={setClick} click={click} /> : <NavbarUnauthen />}
       </div>
     </nav>
   );

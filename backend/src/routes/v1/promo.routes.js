@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { Promo } from "../../models/promocode.model.js";
+import { protect } from "../../middlewares/protect.js";
 
 export const promoRouter = Router();
-
+// promoRouter.use(protect)
 promoRouter.get("/", async (req, res, next) => {
   try {
     console.log(req.query);

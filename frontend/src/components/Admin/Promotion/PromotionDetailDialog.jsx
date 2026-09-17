@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import { Textarea } from "#components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ import axios from "axios";
 const toDateInputValue = (value) => {
   if (!value) return "";
   const date = new Date(value);
-//   if (isNaN(date)) return "";
+  //   if (isNaN(date)) return "";
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
@@ -39,7 +39,6 @@ const DateInput = ({ value }) => {
     />
   );
 };
-
 
 const PromotionDetailDialog = ({ item, url }) => {
   const [description, setDescription] = useState(item.description);
@@ -75,7 +74,8 @@ const PromotionDetailDialog = ({ item, url }) => {
             </DialogDescription>
           </DialogHeader>
           <FieldGroup>
-            <Field>
+            <Field className={'border-y-2 py-3 my-3 border-gbase-1'}>
+              {/* <hr className="mt-2 " /> */}
               <div className="grid grid-cols-2">
                 <div>
                   <Label className={"mb-2"} htmlFor="name">
@@ -143,4 +143,4 @@ const PromotionDetailDialog = ({ item, url }) => {
   );
 };
 
-export default PromotionDetailDialog
+export default PromotionDetailDialog;
