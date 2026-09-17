@@ -19,8 +19,10 @@ import DialogForm from "#components/Admin/Promotion/DialogForm";
 import PromotionList from "#components/Admin/Promotion/PromotionList";
 import { Ring } from "#components/ring";
 import { Label } from "#components/ui/label";
+
+
 const PromotionPage = () => {
-  const url = "/api/v1";
+  const url = import.meta.env.VITE_API_URL;
   const [loading, setLoading] = useState(null);
   const SORTABLE_COLUMNS = [
     { value: "name", label: "Name" },

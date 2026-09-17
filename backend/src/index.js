@@ -8,9 +8,12 @@ const corsOptions = {
   origin: [
     "http://localhost:5173",
     "https://team-07-project-gv-sprint2.vercel.app",
-  ], // URL ของ Frontend ที่ต้องการอนุญาต
+  ],
   credentials: true,
 };
+
+ // URL ของ Frontend ที่ต้องการอนุญาต // allowing vercel domains
+// origin: "http://localhost:5173", // URL ของ Frontend ที่ต้องการอนุญาต (old code before deploy)
 
 const app = express();
 const port = 3000;
@@ -18,7 +21,11 @@ const port = 3000;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors(corsOptions));
+app.options('*', cors()); // Enable preflight requests
+
 app.use("/api", apiRoutes);
+
+
 
 //Centralize error handling middleware
 app.use((err, req, res, next) => {
@@ -29,24 +36,24 @@ app.use((err, req, res, next) => {
 });
 
 //==============old code==============
-// async function start() {
-//   try {
-//     await connectDB();
+async function start() {
+  try {
+    await connectDB();
 
-//     app.listen(port, () => {
-//       console.log(`Server running on port: ${port} 🏃‍♀️`);
-//     });
-//   } catch (err) {
-//     console.error("Failed to connect to MongoDB:", err.message);
-//     process.exit(1);
-//   }
-// }
+    app.listen(port, () => {
+      console.log(`Server running on port: ${port} 🏃‍♀️`);
+    });
+  } catch (err) {
+    console.error("Failed to connect to MongoDB:", err.message);
+    process.exit(1);
+  }
+}
 //==============old code==============
-//start();
+start();
 
 
 //==========new code=======================
-connectDB().catch((err) => console.error("Failed to connect to MongoDB:", err.message));
-export default app;
+// connectDB().catch((err) => console.error("Failed to connect to MongoDB:", err.message));
+// export default app;
 
 start();
