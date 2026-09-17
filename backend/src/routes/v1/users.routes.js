@@ -6,7 +6,7 @@ import { protect } from "../../middlewares/protect.js";
 
 export const userRouter = Router();
 
-//read users
+//get all users
 userRouter.get("/", async (req, res, next) => {
   try {
     const data = await User.find();
@@ -14,6 +14,21 @@ userRouter.get("/", async (req, res, next) => {
       return res.status(400).json({ message: "User's data is empty!" });
     }
     return res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// get user by id
+userRouter.get("/:userId", async (req, res, next) => {
+  try {
+    const userData = await User.findById(req.params.userId);
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found!" });
+    }
+    return res.status(200).json({ success: true, userData });
   } catch (error) {
     next(error);
   }
@@ -29,7 +44,7 @@ userRouter.post("/register", async (req, res, next) => {
         message: "Firstname, lastname, email and password are required!",
       });
     }
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const newPassword = await bcrypt.hash(password, salt);
     const user = await User.create({
       firstname,
@@ -51,7 +66,7 @@ userRouter.post("/register", async (req, res, next) => {
 });
 
 //update user's data
-userRouter.patch("/:id", async (req, res, next) => {
+userRouter.patch("/:userId", async (req, res, next) => {
   try {
     const {
       username,
@@ -59,8 +74,8 @@ userRouter.patch("/:id", async (req, res, next) => {
       password,
       firstname,
       lastname,
-      address,
       phoneNumber,
+      role,
     } = req.body;
 
     const updateFields = {};
@@ -69,11 +84,8 @@ userRouter.patch("/:id", async (req, res, next) => {
     if (password) updateFields.password = password;
     if (firstname) updateFields.firstname = firstname;
     if (lastname) updateFields.lastname = lastname;
-    if (Array.isArray(address) && address.length > 0) {
-      updateFields.$push = { address: { $each: address } };
-    }
     if (phoneNumber) updateFields.phoneNumber = phoneNumber;
-
+    if (role) updateFields.role = role;
     if (Object.keys(updateFields).length === 0) {
       return res.status(400).json({
         success: false,
@@ -81,10 +93,8 @@ userRouter.patch("/:id", async (req, res, next) => {
       });
     }
 
-    const notUpdatedUser = await User.findById(req.params.id);
-
     const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
+      req.params.userId,
       updateFields,
       { new: true, runValidators: true },
     );
@@ -98,7 +108,6 @@ userRouter.patch("/:id", async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Updated user partially!",
-      notUpdatedUser,
       updatedUser,
     });
   } catch (error) {
@@ -106,15 +115,82 @@ userRouter.patch("/:id", async (req, res, next) => {
   }
 });
 
-//delete user
-userRouter.delete("/:id", async (req, res, next) => {
+// add address
+userRouter.patch("/:userId/address", async (req, res, next) => {
   try {
-    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    const { address } = req.body;
+
+    const userData = await User.findOne({ _id: req.params.userId });
+
+    for (let i = 0; i < userData.address.length; i++) {
+      if (
+        address.houseNo == userData.address[i].houseNo &&
+        address.street == userData.address[i].street &&
+        address.zipCode == userData.address[i].zipCode
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "This address has already been saved. Please enter a new address!",
+        });
+      }
+    }
+
+    if (address.isDefault) {
+      // เช็กว่า user ตั้งที่อยู่เป็น isDefault ไว้หรือไม่ หากตั้งไว้ ตัว $set จะอัปเดตค่า isDefault ทั้งหมดภายใน address ให้เป็น false
+      // ใช้เพื่อให้ user ตั้งที่อยู่ default ได้แค่อันเดียว
+      await User.updateOne(
+        { _id: req.params.userId },
+        {
+          // $[] เป็นการบอก MongoDB ว่า ให้เจาะเข้าไปในทุก Object ที่อยู่ใน Array address
+          $set: { "address.$[].isDefault": false },
+        },
+      );
+    }
+
+    const updatedAddress = await User.findByIdAndUpdate(
+      req.params.userId,
+      { $push: { address: address } },
+      { new: true, runValidators: true },
+    );
+
+    if (!updatedAddress) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Can not update address!" });
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Updated address successfully!" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// delete address
+userRouter.delete("/:userId/address/:addressId", async (req, res, next)=> {
+  try {
+    const deletedAddress = await User.findByIdAndDelete(req.params.addressId);
+    if(!deletedAddress){
+      return res.status(400).json({success: false, message: ""})
+    }
+  } catch (error) {
+    next(error)
+  }
+})
+
+//delete user
+userRouter.delete("/:userId", async (req, res, next) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.userId);
+
     if (!deletedUser) {
       return res
         .status(404)
         .json({ success: false, message: "User not found!" });
     }
+
     return res
       .status(200)
       .json({ success: true, message: "Deleted user succesfully!" });
@@ -126,13 +202,15 @@ userRouter.delete("/:id", async (req, res, next) => {
 //get current user from cookie
 userRouter.get("/me", protect, async (req, res, next) => {
   try {
-    console.log(req.user);
+
     const user = await User.findById(req.user.user._id).select("-password");
+
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
     }
+
     return res.status(200).json({
       success: true,
       user: {
@@ -148,7 +226,6 @@ userRouter.get("/me", protect, async (req, res, next) => {
 });
 
 //user login
-// เหลือ gen token
 userRouter.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -187,6 +264,7 @@ userRouter.post("/login", async (req, res, next) => {
       path: "/",
       maxAge: 60 * 60 * 1000,
     });
+
     return res.status(200).json({
       success: true,
       message: "Login successfully!",
@@ -197,67 +275,16 @@ userRouter.post("/login", async (req, res, next) => {
         email: user.email,
       },
     });
+    return res
+      .status(200)
+      .json({ success: true, message: "Login successfully!" });
   } catch (error) {
     console.log(error);
     next(error);
   }
 });
 
-userRouter.get("/:id", protect, async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-    return res.status(200).json({ success: true, data: user });
-  } catch (error) {
-    console.error("GET /users/:id error:", error);
-    return res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-userRouter.put("/:id", async (req, res) => {
-  try {
-    const {
-      firstname,
-      lastname,
-      username,
-      email,
-      password,
-      role,
-      phoneNumber,
-      address,
-    } = req.body;
-
-    const updates = {};
-    if (firstname !== undefined) updates.firstname = firstname;
-    if (lastname !== undefined) updates.lastname = lastname;
-    if (username !== undefined) updates.username = username;
-    if (email !== undefined) updates.email = email;
-    if (role !== undefined) updates.role = role;
-    if (phoneNumber !== undefined) updates.phoneNumber = phoneNumber;
-    if (address !== undefined) updates.address = address;
-    if (password) updates.password = await bcrypt.hash(password, 10);
-
-    const user = await User.findByIdAndUpdate(req.params.id, updates, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-    return res.status(200).json({ success: true, data: user });
-  } catch (error) {
-    console.error("PUT /users/:id error:", error);
-    return res.status(500).json({ success: false, message: error.message });
-  }
-});
-
+// user logout
 userRouter.post("/logout", (req, res, next) => {
   try {
     const isProd = process.env.NODE_ENV === "production";
@@ -278,59 +305,4 @@ userRouter.post("/logout", (req, res, next) => {
   }
 });
 
-// userRouter.delete("/:id", async (req, res) => {
-//   try {
-//     const user = await User.findByIdAndDelete(req.params.id);
-//     if (!user) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "User not found" });
-//     }
-//     return res
-//       .status(200)
-//       .json({ success: true, message: "User deleted successfully" });
-//   } catch (error) {
-//     console.error("DELETE /users/:id error:", error);
-//     return res.status(500).json({ success: false, message: error.message });
-//   }
-// });
 
-// userRouter.post("/register", async (req, res) => {
-//   try {
-//     const {
-//       firstname,
-//       lastname,
-//       username,
-//       email,
-//       password,
-//       role,
-//       phoneNumber,
-//       address,
-//     } = req.body;
-
-//     if (!firstname || !lastname || !email || !password) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "firstname, lastname, email and password are required!",
-//       });
-//     }
-
-//     const hash = await bcrypt.hash(password, 10);
-
-//     const user = await User.create({
-//       firstname,
-//       lastname,
-//       username,
-//       email,
-//       password: hash,
-//       role: role || "user",
-//       phoneNumber,
-//       address,
-//     });
-
-//     return res.status(201).json({ success: true, data: user });
-//   } catch (error) {
-//     console.error("POST /users/register error:", error);
-//     return res.status(500).json({ success: false, message: error.message });
-//   }
-// });
