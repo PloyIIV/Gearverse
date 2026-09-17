@@ -13,7 +13,7 @@ import React, { useEffect, useState } from "react";
 import PromotionDetailDialog from "./PromotionDetailDialog";
 
 const PromotionList = ({ data, loading }) => {
-  const url = "http://localhost:3000/api/v1/promo";
+  const url = "/api/v1/promo";
   return (
     <div>
       <Table>

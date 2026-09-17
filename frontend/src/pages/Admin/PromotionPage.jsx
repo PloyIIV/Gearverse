@@ -20,7 +20,7 @@ import PromotionList from "#components/Admin/Promotion/PromotionList";
 import { Ring } from "#components/ring";
 import { Label } from "#components/ui/label";
 const PromotionPage = () => {
-  const url = "http://localhost:3000/api/v1";
+  const url = "/api/v1";
   const [loading, setLoading] = useState(null);
   const SORTABLE_COLUMNS = [
     { value: "name", label: "Name" },
